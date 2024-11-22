@@ -3,18 +3,32 @@
   "displayName": "visual_flutter",
   "description": "Visual tools for editing widgets,dependencies,permissions for flutter",
   "publisher": "zlkrnynkrc",
-  "repository": "https://github.com/zlkrnynkrc/visual_flutter",
-  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zlkrnynkrc/visual_flutter.git"
+  },
+  "version": "0.0.2",
   "icon": "media/drag.png",
   "engines": {
     "vscode": "^1.91.0"
   },
+  "keywords": [
+    "Flutter",
+    "Widget",
+    "drag",
+    "drop",
+    "property",
+    "edit",
+    "show",
+    "search"
+  ],
   "license": "SEE LICENSE IN LICENSE.md",
   "categories": [
     "Other"
   ],
   "activationEvents": [
-    "onLanguage:dart"
+    "onLanguage:dart",
+    "workspaceContains:**/pubspec.yaml"
   ],
   "main": "./src/main.js",
   "contributes": {
@@ -44,7 +58,8 @@
         {
           "id": "flutter-widget-properties",
           "title": "Visual Flutter",
-          "icon": "media/drag.png"
+          "icon": "media/drag.png",
+          "when": "flutterProject"
         }
       ]
     },
@@ -124,9 +139,12 @@
     }
   },
   "scripts": {
-    "lint": "eslint .",
+    "lint": "eslint .", 
     "pretest": "npm run lint",
-    "test": "vscode-test"
+    "test": "vscode-test", 
+    "build": "echo 'No build step required for JavaScript'",
+    "publish": "vsce publish",
+    "package": "vsce package --no-yarn"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.7",
@@ -134,11 +152,11 @@
     "@types/vscode": "^1.91.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
-    "eslint": "^9.9.1",
-    "yaml": "^2.6.0"
+    "eslint": "^9.9.1"
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.9.5",
-    "node-fetch": "^2.7.0"
+    "node-fetch": "^2.7.0",
+    "yaml": "^2.6.0"
   }
 }

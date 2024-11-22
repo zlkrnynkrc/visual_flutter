@@ -25,7 +25,7 @@ class EventManager {
                 const dartAnalyzer = DartAnalyzer.getInstance();
                 const isFileAnalyzed = await dartAnalyzer.analyzeProjectFiles(editor.document.uri.fsPath);
                 if (!isFileAnalyzed) {
-                    console.log(`File is not analyzable: ${editor.document.uri.fsPath}`);
+                    vscode.window.showInformationMessage(`File is not analyzable: ${editor.document.uri.fsPath}`);
                 }
             }
         });

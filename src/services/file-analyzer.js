@@ -67,7 +67,7 @@ class FileAnalyzer {
       });
       // eslint-disable-next-line no-unused-vars
     } catch (error) {
-      console.log('Analyzing Eror path:' + filePath);
+      vscode.window.showInformationMessage('Analyzing Eror path:' + filePath);
     }
   }
 }
