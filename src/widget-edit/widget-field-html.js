@@ -1,8 +1,8 @@
- 
-const { Kind } = require('../widget-list/models/kinds'); 
-const vscode = require('vscode'); 
 
-  function getHtml() {
+const { Kind } = require('../widget-list/kinds');
+const vscode = require('vscode');
+
+function getHtml() {
     return `<!DOCTYPE html>
     <html lang="en">
     <head>
@@ -24,9 +24,9 @@ const vscode = require('vscode');
     <body> 
         <h3>Edit Widget Properties</h3></body>
         </html>`;
-} 
+}
 
-  function getWebviewContent(widgetInfo, webview, extensionUri) {
+function getWebviewContent(widgetInfo, webview, extensionUri) {
     const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'media', 'styles.css'));
     const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'media', 'scripts.js'));
     widgetInfo.result.properties.sort((a, b) => {
@@ -34,7 +34,7 @@ const vscode = require('vscode');
         const nameB = b?.name || '';
         return nameA > nameB ? 1 : nameB > nameA ? -1 : 0;
     });
-   
+
     // widgetInfo.properties.sort((a, b) => (a.name > b.name ? 1 : b.name > a.name ? -1 : 0));
     const tableRows = widgetInfo.result.properties
         .map(property => {
@@ -73,7 +73,7 @@ module.exports = {
     getHtml,
     getWebviewContent
 };
- function generateInputField(property) {
+function generateInputField(property) {
     const value = property.expression || '';
     const isDefault = property.defvalue !== undefined && property.defvalue !== null;
     const hintText = isDefault ? `placeholder="${property.type}"` : '';

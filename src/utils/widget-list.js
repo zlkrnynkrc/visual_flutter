@@ -2,6 +2,7 @@ const findCustomWidgetFiles = require('./custom-widget-finder');
 const vscode = require('vscode');
 const additionalWidgets = [
 	{ name: 'SafeArea', icon: '⛨', template: "SafeArea(child: )," },
+	{ name: 'Obx', icon: 'obx', template: "Obx(()=>  )," },
 	{ name: 'AspectRatio', icon: '◫', template: "AspectRatio(\n\taspectRatio: 16/9,\n\t child: )," },
 	{ name: 'ConstrainedBox', icon: '▣', template: "ConstrainedBox(\n\tconstraints: BoxConstraints(),\n\t child: \n)," },
 	{ name: 'FractionallySizedBox', icon: '◰', template: "FractionallySizedBox(\n\twidthFactor: 0.5,\n\t heightFactor: 0.5,\n\t child: \n)," },

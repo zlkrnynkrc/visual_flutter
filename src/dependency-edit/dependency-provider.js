@@ -1,17 +1,17 @@
 const vscode = require('vscode');
 const DependencyWebViewHtml = require('./dependency-html');
-class DependencyWebView {
+class DependencyProvider {
   constructor(extensionUri, dependencyService, pubspecManager) {
     this.extensionUri = extensionUri;
     this.dependencyService = dependencyService;
     this.pubspecManager = pubspecManager;
-    this.view = undefined;
+    this._view = undefined;
     this.dependencies = [];
 
   }
 
   resolveWebviewView(webviewView) {
-    this.view = webviewView;
+    this._view = webviewView;
 
     webviewView.webview.options = {
       enableScripts: true,
@@ -19,7 +19,6 @@ class DependencyWebView {
     };
 
     this.updateWebviewContent();
-
     webviewView.webview.onDidReceiveMessage((message) => {
       switch (message.command) {
         case 'refresh':
@@ -39,24 +38,32 @@ class DependencyWebView {
           break;
       }
     });
+    webviewView.onDidChangeVisibility(() => {
+      if (!webviewView.visible) {
+        this.dispose();
+      }
+    });
+  }
+  dispose() {
+    this._view.dispose();
   }
 
   async updateWebviewContent() {
-    const pubspec = this.pubspecManager.readPubspec();
+    const pubspec = await this.pubspecManager.readPubspec();
     if (!pubspec) return;
 
     this.dependencies = await this.dependencyService.fetchDependencies(pubspec);
-    const html =DependencyWebViewHtml.generate(this.dependencies);
+    const html = DependencyWebViewHtml.generate(this.dependencies);
 
-    if (this.view) {
-      this.view.webview.html = html;
+    if (this._view) {
+      this._view.webview.html = html;
     }
   }
 
 
 
   addDependency() {
-    vscode.commands.executeCommand('dart.addDependency').then(()=> this.updateWebviewContent());
+    vscode.commands.executeCommand('dart.addDependency').then(() => this.updateWebviewContent());
 
   }
 
@@ -79,8 +86,8 @@ class DependencyWebView {
     this.pubspecManager.writePubspec(pubspec);
 
     // Refresh the webview with updated in-memory data
-    const htmlContent =DependencyWebViewHtml.generate(this.dependencies);
-    this.view.webview.html = htmlContent;
+    const htmlContent = DependencyWebViewHtml.generate(this.dependencies);
+    this._view.webview.html = htmlContent;
 
     vscode.window.showInformationMessage(`Removed dependency "${dependencyName}".`);
   }
@@ -90,7 +97,7 @@ class DependencyWebView {
     const pubspec = this.pubspecManager.readPubspec();
     if (!pubspec) return;
     this.dependencies = pubspec.dependencies;
-    pubspec.dependencies[dependency.name] = dependency.latest; 
+    pubspec.dependencies[dependency.name] = dependency.latest;
     this.updateWebviewContent();
   }
 
@@ -110,4 +117,4 @@ class DependencyWebView {
   }
 }
 
-module.exports = DependencyWebView;
+module.exports = DependencyProvider;

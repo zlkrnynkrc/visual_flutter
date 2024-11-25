@@ -1,16 +1,17 @@
-const vscode = require('vscode'); 
+const vscode = require('vscode');
+const { libPath } = require("../utils/path-provider");
 
 
 function extractConstructorParams(content, widgetName) {
     // Enhanced regex to capture more complex parameter declarations
     const constructorRegex = new RegExp(`${widgetName}\\s*\\(\\{([^}]+)\\}\\)\\s*;`, 's');
     const match = content.match(constructorRegex);
-    
+
     if (!match) return [];
 
     // More comprehensive regex for parameter extraction
     const paramRegex = /(?:(?:required\s+)?(?:final\s+)?(?:const\s+)?)?(?:(?:super\.)?([a-zA-Z]\w*)\s*=\s*([^,]+)?|([a-zA-Z]\w*)\s+([a-zA-Z]\w*)(?:\s*=\s*([^,]+)?)?|\s*this\.([a-zA-Z]\w*)(?:\s*=\s*([^,]+)?)?)/g;
-    
+
     const requiredParams = [];
     const processedParams = new Set();
 
@@ -18,8 +19,8 @@ function extractConstructorParams(content, widgetName) {
     while ((paramMatch = paramRegex.exec(match[1])) !== null) {
         // Extract different possible match groups
         const [
-            superKeyParam, superKeyDefaultValue, 
-            typeParam, nameParam, typeDefaultValue, 
+            superKeyParam, superKeyDefaultValue,
+            typeParam, nameParam, typeDefaultValue,
             thisParam, thisDefaultValue
         ] = paramMatch.slice(1);
 
@@ -71,21 +72,21 @@ function extractConstructorParams(content, widgetName) {
 
 function generateWidgetTemplate(widgetName, params) {
     const requiredParams = params.filter(p => p.isRequired || !p.defaultValue);
-    
+
     const paramStrings = requiredParams.map(param => {
         // Generate default values based on type
-        const defaultValue = 
-            param.type.includes('String') ? '""' : 
-            param.type.includes('RxString') ? '"".obs' : 
-            param.type.includes('bool') ? 'false' : 
-            param.type.includes('RxBool') ? 'false.obs' : 
-            param.type.includes('int') ? '0' : 
-            param.type.includes('double') ? '0.0' : 
-            param.type.includes('List') ? '[]' : 
-            param.type.includes('Map') ? '{}' : 
-            param.type.includes('Widget') ? 'const SizedBox()' : 
-            param.type.includes('VoidCallback') ? '() {}' :
-            'null';
+        const defaultValue =
+            param.type.includes('String') ? '""' :
+                param.type.includes('RxString') ? '"".obs' :
+                    param.type.includes('bool') ? 'false' :
+                        param.type.includes('RxBool') ? 'false.obs' :
+                            param.type.includes('int') ? '0' :
+                                param.type.includes('double') ? '0.0' :
+                                    param.type.includes('List') ? '[]' :
+                                        param.type.includes('Map') ? '{}' :
+                                            param.type.includes('Widget') ? 'const SizedBox()' :
+                                                param.type.includes('VoidCallback') ? '() {}' :
+                                                    'null';
 
         return `\n\t${param.name}: ${defaultValue}`;
     });
@@ -94,34 +95,26 @@ function generateWidgetTemplate(widgetName, params) {
 }
 
 async function findCustomWidgetFiles() {
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (!workspaceFolders) {
+    if (!libPath) {
         vscode.window.showInformationMessage('No workspace folder open');
         return [];
     }
 
     const customWidgets = [];
+    const globPattern = new vscode.RelativePattern(libPath(), '**/*.dart');
 
-    const dartFiles = await vscode.workspace.findFiles('**/*.dart');
+    const dartFiles = await vscode.workspace.findFiles(globPattern);
 
     for (const fileUri of dartFiles) {
         try {
             const document = await vscode.workspace.openTextDocument(fileUri);
             const content = document.getText();
-
-            // Regex to find custom widgets ending with CW that extend StatelessWidget
-            const customWidgetRegex = /class\s+(\w+CW)\s+extends\s+StatelessWidget\s*{/g;
-            
+            const customWidgetRegex = /class\s+(\w+CW)\s+extends\s+(StatelessWidget|StatefulWidget|(\w+Widget))\s*{/g;
             let match;
             while ((match = customWidgetRegex.exec(content)) !== null) {
                 const widgetName = match[1];
-                
-                // Extract constructor parameters
                 const constructorParams = extractConstructorParams(content, widgetName);
-                
-                // Generate template with required parameters
                 const template = generateWidgetTemplate(widgetName, constructorParams);
-
                 customWidgets.push({
                     name: widgetName,
                     icon: '✦', // Custom icon for custom widgets
@@ -138,4 +131,4 @@ async function findCustomWidgetFiles() {
 
 
 // Call this function when your extension activates or when you want to refresh the list
-module.exports = findCustomWidgetFiles ;
+module.exports = findCustomWidgetFiles;

@@ -1,14 +1,16 @@
-const {getPermissionsList,getPermissionsMap} = require('./permissin-list');
+const { getPermissionsList, getPermissionsMap } = require('./permissin-list');
 
 class PermissionProvider {
     constructor(manifestService) {
-        this.manifestService = manifestService; 
+        this.manifestService = manifestService;
         this.permissionsMap = getPermissionsMap();
         this.availablePermissions = getPermissionsList();
+        this._view = undefined;
+
     }
 
     resolveWebviewView(webviewView) {
-        this.webviewView = webviewView;
+        this._view = webviewView;
         webviewView.webview.options = {
             enableScripts: true,
         };
@@ -26,11 +28,20 @@ class PermissionProvider {
                     break;
             }
         });
+        webviewView.onDidChangeVisibility(() => {
+            if (!webviewView.visible) {
+                this.dispose();
+            }
+        });
+    }
+    dispose() {
+        this._view.dispose();
+
     }
 
     updateWebview() {
         const permissions = this.manifestService.readPermissions();
-        this.webviewView.webview.html = this.getWebviewContent(permissions);
+        this._view.webview.html = this.getWebviewContent(permissions);
     }
 
     getShortPermissionName(fullPermission) {
@@ -193,4 +204,3 @@ class PermissionProvider {
 }
 
 module.exports = PermissionProvider;
- 

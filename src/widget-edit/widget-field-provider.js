@@ -1,13 +1,11 @@
 const vscode = require('vscode');
 const DartAnalyzer = require('../services/dart-analyzer');
 const { getHtml, getWebviewContent } = require('./widget-field-html');
-
 class WidgetFieldProvider {
 
     constructor(extensionUri) {
         this.extensionUri = extensionUri;
         this._view = null;
-        this.disposeMesager = null;
         this.isUpdatingProperty = false;
         this.widgetInfo;
         this.disposeMesager;
@@ -15,7 +13,7 @@ class WidgetFieldProvider {
     }
 
     static getInstance(extensionUri) {
-        if (!this.instance  ) {
+        if (!this.instance) {
             this.instance = new WidgetFieldProvider(extensionUri);
         }
         const config = vscode.workspace.getConfiguration('widgetedit');
@@ -51,10 +49,11 @@ class WidgetFieldProvider {
                     break;
             }
         });
+
     }
 
     updateWebview(widgetInfo) {
-        if (!widgetInfo) return;
+        if (!widgetInfo || !this._view) return;
         this.widgetInfo = widgetInfo;
         this._view.webview.html = getWebviewContent(widgetInfo, this._view.webview, this.extensionUri);
     }
@@ -247,7 +246,7 @@ class WidgetFieldProvider {
     }
 
     dispose() {
-        this.disposeMesager.dispose();
+        this._view.dispose();
     }
 
     showInvalidProjectMessage() {

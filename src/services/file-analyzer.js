@@ -1,6 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const vscode = require('vscode');
+const { libPath } = require("../utils/path-provider");
+
+
 class FileAnalyzer {
   constructor(analysisServer, analyzedProjectFiles) {
     this.analysisServer = analysisServer;
@@ -12,7 +15,7 @@ class FileAnalyzer {
     }
     return this.instance;
   }
-  async analyzeProjectFiles(projectPath) { 
+  async analyzeProjectFiles(projectPath) {
     if (!this.checkLibPath(projectPath)) {
       return false;
     }
@@ -31,13 +34,11 @@ class FileAnalyzer {
     }
     return true;
   }
-  checkLibPath(projectPath) {
-    const workspaceFolder = vscode.workspace.workspaceFolders[0];
-    if (!workspaceFolder) {
+  async checkLibPath(projectPath) {
+    if (!libPath()) {
       return false;
     }
-    const libPath = path.join(workspaceFolder.uri.fsPath, 'lib'); 
-    if (projectPath.startsWith(libPath)) { return true; }
+    if (projectPath.startsWith(libPath())) { return true; }
   }
   analyzeFile(filePath) {
     try {

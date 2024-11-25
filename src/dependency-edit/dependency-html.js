@@ -1,32 +1,32 @@
 class DependencyWebViewHtml {
     static generate(dependencies) {
-      const rows = dependencies
-        .map((dep) => {
-          const isLatest = dep.current == '^' + dep.latest;
-          const colorClass = isLatest ? 'latest-version' : 'outdated-version';
-          const subRows = dep.subDependencies
-            ? Object.entries(dep.subDependencies)
-              .map(
-                ([key, value]) =>
-                  `<tr class="subdependency-row">
+        const rows = dependencies
+            .map((dep) => {
+                const isLatest = dep.current == '^' + dep.latest;
+                const colorClass = isLatest ? 'latest-version' : 'outdated-version';
+                const subRows = dep.subDependencies
+                    ? Object.entries(dep.subDependencies)
+                        .map(
+                            ([key, value]) =>
+                                `<tr class="subdependency-row">
                         <td><span class="icon">&#x21A9;</span> ${key}</td>
                         <td>${typeof value === 'object' ? JSON.stringify(value) : value}</td>
                         <td>-</td>
                     </tr>`
-              )
-              .join('')
-            : '';
-  
-          return `
+                        )
+                        .join('')
+                    : '';
+
+                return `
             <tr class="dependency-row" data-dependency="${dep.name}">
               <td>${dep.name}</td>
               <td class="${colorClass}">${dep.current}</td>
               <td>${dep.latest}</td>
             </tr>${subRows}`;
-        })
-        .join('');
-  
-      return `
+            })
+            .join('');
+
+        return `
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -55,13 +55,13 @@ class DependencyWebViewHtml {
                     background-color: var(--vscode-editor-background);
                     color: var(--vscode-editor-foreground);
                     font-weight: bold;
-                    border-bottom: 2px dotted var(--vscode-editor-foreground);
+                    border-bottom: 2px dotted black;
                 }
   
                 td {
                     background-color: var(--vscode-editor-background);
                     color: var(--vscode-editor-foreground);
-                    border-bottom: 1px dotted var(--vscode-editor-foreground);
+                    border-bottom: 1px dotted black;
                 }
 
                 td.edgeinset { 
@@ -236,6 +236,6 @@ class DependencyWebViewHtml {
         </html>
       `;
     }
-  }
-  
-  module.exports = DependencyWebViewHtml;
+}
+
+module.exports = DependencyWebViewHtml;

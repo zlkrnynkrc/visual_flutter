@@ -1,14 +1,13 @@
 const vscode = require('vscode');
-const { getFlutterWidgetsList } = require('../../utils/widget-list');
-
+const { getFlutterWidgetsList } = require('../utils/widget-list');
 class WidgetListProvider {
 
     constructor(extensionUri) {
         this._extensionUri = extensionUri;
-        this._view = undefined; 
+        this._view = undefined;
     }
 
-   async resolveWebviewView(webviewView) {
+    async resolveWebviewView(webviewView) {
         this._view = webviewView;
 
         webviewView.webview.options = {
@@ -16,7 +15,7 @@ class WidgetListProvider {
             localResourceRoots: [this._extensionUri]
         };
 
-        webviewView.webview.html =await this._getHtmlContent(webviewView.webview);
+        webviewView.webview.html = await this._getHtmlContent(webviewView.webview);
 
         webviewView.onDidChangeVisibility(() => {
             if (this._view && !this._view.visible) {
@@ -25,12 +24,12 @@ class WidgetListProvider {
         });
     }
 
-  async  _getHtmlContent(webview) {
+    async _getHtmlContent(webview) {
         const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'styles.css'));
         const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'script_list.js'));
-        const flutterWidgets=await getFlutterWidgetsList();
+        const flutterWidgets = await getFlutterWidgetsList();
 
-        
+
         return `
         <!DOCTYPE html>
         <html lang="en">
@@ -58,7 +57,8 @@ class WidgetListProvider {
         this.dispose();
     }
 
-    dispose() { 
+    dispose() {
+        this._view.dispose();
     }
 
     showInvalidProjectMessage() {

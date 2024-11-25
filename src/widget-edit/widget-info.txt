@@ -1,4 +1,4 @@
-class Position {
+ class Position {
     constructor(line, character) {
       this.line = line;
       this.character = character;
@@ -137,6 +137,4 @@ class Position {
     }
   }
   
-  
-
-  
+   

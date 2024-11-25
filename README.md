@@ -14,6 +14,7 @@ This extension enhances the Flutter development experience in VS Code by allowin
 ![Demo](https://github.com/zlkrnynkrc/flutterwidgetlistedit/blob/main/widget_prop.gif?raw=true) 
 - **Auto-Detection:** The extension automatically detects the Dart SDK location, prompting the user to specify it if not found.
 - **Builds per abi command:** Added flutter per abi command for build.
+- **Simplify Workspace command:** Added Simplify Workspace command. Simplfy file explorer for selected platform. You can edit or delete from "your_project_path/.vscode/your_project_name.code-workspace".
 - **Both visible on explorer and self bar:** 
 
 ## Requirements
@@ -38,6 +39,11 @@ This extension contributes the following settings:
 
 ## Release Notes
 
+### 0.0.3
+- fixed cant find project folder when custom workspace.(multi workspace may not supported)
+- Added Simplify Workspace command. Simplfy file explorer for selected platform. You can edit or delete from "your_project_path/.vscode/your_project_name.code-workspace".
+### 0.0.2
+- Fixed package issue
 ### 0.0.1
 
 Update flutter widgets list and edit

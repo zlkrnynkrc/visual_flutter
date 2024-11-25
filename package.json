@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/zlkrnynkrc/visual_flutter.git"
   },
-  "version": "0.0.2",
+  "version": "0.0.3",
   "icon": "media/drag.png",
   "engines": {
     "vscode": "^1.91.0"
@@ -121,6 +121,22 @@
       {
         "command": "flutter.per.abi",
         "title": "Flutter build per abi"
+      },
+      {
+        "command": "flutter.createWorkspace",
+        "title": "Simplfy Workspace"
+      },
+      {
+        "command": "flutter.wrapWithObx",
+        "title": "Wrap with Obx"
+      },
+      {
+        "command": "flutter.wrapWithExpanded",
+        "title": "Wrap with Expanded"
+      },
+      {
+        "command": "flutter.wrapWithFlexible",
+        "title": "Wrap with Flexible"
       }
     ],
     "menus": {
@@ -139,9 +155,9 @@
     }
   },
   "scripts": {
-    "lint": "eslint .", 
+    "lint": "eslint .",
     "pretest": "npm run lint",
-    "test": "vscode-test", 
+    "test": "vscode-test",
     "build": "echo 'No build step required for JavaScript'",
     "publish": "vsce publish",
     "package": "vsce package --no-yarn"
