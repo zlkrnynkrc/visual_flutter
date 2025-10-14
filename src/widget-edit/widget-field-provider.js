@@ -17,7 +17,7 @@ class WidgetFieldProvider {
             this.instance = new WidgetFieldProvider(extensionUri);
         }
         const config = vscode.workspace.getConfiguration('widgetedit');
-        this.instance.isautosave = config.get('autosave');
+        this.instance.isautosave = config.get('autosave') ?? true;
         return this.instance;
     }
 

@@ -65,7 +65,7 @@ class ProjectMainPath {
         try {
             return vscode.workspace.fs.stat(vscode.Uri.file(filePath))
                 .then(() => true, () => false)
-        } catch (e) {
+        } catch {
             return false;
         }
     }

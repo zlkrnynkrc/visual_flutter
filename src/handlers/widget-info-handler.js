@@ -69,7 +69,7 @@ class WidgetInfoHandler {
     }
 
     static parseWidgetProperties(code) {
-        const widgetNameMatch = code.match(/(\w+)\s+(\w+)\(/);
+        const widgetNameMatch = code.match(/(\(\w+\))?\s*(\w+)\(/);
         if (!widgetNameMatch) return null;
 
         const widgetName = widgetNameMatch[2];

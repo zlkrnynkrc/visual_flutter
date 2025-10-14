@@ -71,6 +71,10 @@ class DartAnalyzer {
   analyzeFile(filePath) {
     this.fileAnalyzer.analyzeFile(filePath);
   }
+
+  stop() {
+    this.analysisServer.stop();
+  }
 }
 
 module.exports = DartAnalyzer;

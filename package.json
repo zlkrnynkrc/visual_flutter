@@ -66,21 +66,25 @@
     "views": {
       "flutter-widget-properties": [
         {
+          "icon": "media/list.svg",
           "type": "webview",
           "id": "flutter-widget-list-activitybar",
           "name": "Flutter Widget List"
         },
         {
+          "icon": "media/properties.svg",
           "type": "webview",
           "id": "widget-fields-sidebar-activitybar",
           "name": "Widget Properties"
         },
         {
+          "icon": "media/dependencies.svg",
           "type": "webview",
           "id": "flutter-dependencies-activitybar",
           "name": "Flutter Dependencies"
         },
         {
+          "icon": "media/permissions.svg",
           "type": "webview",
           "id": "flutter-permissions-activitybar",
           "name": "Flutter Permissions"
@@ -88,21 +92,25 @@
       ],
       "explorer": [
         {
+          "icon": "media/list.svg",
           "type": "webview",
           "id": "flutter-widget-list-explorer",
           "name": "Flutter Widget List"
         },
         {
+          "icon": "media/properties.svg",
           "type": "webview",
           "id": "widget-fields-sidebar-explorer",
           "name": "Widget Properties"
         },
         {
+          "icon": "media/dependencies.svg",
           "type": "webview",
           "id": "flutter-dependencies-explorer",
           "name": "Flutter Dependencies"
         },
         {
+          "icon": "media/permissions.svg",
           "type": "webview",
           "id": "flutter-permissions-explorer",
           "name": "Flutter Permissions"

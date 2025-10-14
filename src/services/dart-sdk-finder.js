@@ -4,9 +4,9 @@ const exec = require('child_process').exec;
 const vscode = require('vscode');
  
 const isWin = process.platform === 'win32';
-const isMac = process.platform === 'darwin';
-const isLinux = process.platform === 'linux';
-
+/*const isUnix = process.platform === 'darwin'
+  || process.platform === 'linux';
+*/
  const executableNames = {
   dart: isWin ? 'dart.exe' : 'dart',
   flutter: isWin ? 'flutter.bat' : 'flutter',
@@ -17,6 +17,7 @@ const isLinux = process.platform === 'linux';
  class SdkFinder {
   constructor() {
     this.dartSdk = null;
+    this.dartFromFlutterSDK = null;
     this.flutterSdk = null;
     this.aSSnapshot = null;
   }
@@ -26,12 +27,13 @@ const isLinux = process.platform === 'linux';
     const flutterSdkFromEnv = process.env.FLUTTER_SDK;
 
     if (dartSdkFromEnv) {
-      this.dartSdk = this.normalizeSdkPath(dartSdkFromEnv);
+      this.dartSdk ??= this.normalizeDartSdkPath(dartSdkFromEnv);
     }
 
     if (flutterSdkFromEnv) {
-      this.flutterSdk = this.normalizeSdkPath(flutterSdkFromEnv);
-      this.aSSnapshot = path.join(this.flutterSdk, 'cache/dart-sdk/bin/snapshots', executableNames.analysisServerSnapshot);
+      this.flutterSdk ??= this.normalizeSdkPath(flutterSdkFromEnv);
+      this.dartFromFlutterSDK ??= this.normalizeDartSdkPath(flutterSdkFromEnv);
+      this.aSSnapshot ??= path.join(this.flutterSdk, 'cache/dart-sdk/bin/snapshots', executableNames.analysisServerSnapshot);
     }
   }
 
@@ -40,12 +42,13 @@ const isLinux = process.platform === 'linux';
     const flutterSdkFromVscode = vscode.workspace.getConfiguration().get('flutter.sdkPath');
 
     if (dartSdkFromVscode) {
-      this.dartSdk = this.normalizeSdkPath(dartSdkFromVscode);
+      this.dartSdk ??= this.normalizeDartSdkPath(dartSdkFromVscode);
     }
 
     if (flutterSdkFromVscode) {
-      this.flutterSdk = this.normalizeSdkPath(flutterSdkFromVscode);
-      this.aSSnapshot = path.join(this.flutterSdk, 'cache/dart-sdk/bin/snapshots', executableNames.analysisServerSnapshot);
+      this.flutterSdk ??= this.normalizeSdkPath(flutterSdkFromVscode);
+      this.dartFromFlutterSDK ??= this.normalizeDartSdkPath(flutterSdkFromVscode);
+      this.aSSnapshot ??= this.normalizeSnapshotsPath();
     }
     
   }
@@ -60,6 +63,47 @@ const isLinux = process.platform === 'linux';
  
     return sdkPath;  
   }
+
+  normalizeSnapshotsPath() {
+    if (!this.dartFromFlutterSDK) return null;
+ 
+    const snapPath = path.join(this.dartFromFlutterSDK, 'snapshots', executableNames.analysisServerSnapshot);
+    if (fs.existsSync(snapPath)) {
+      return snapPath;  
+    }
+ 
+    return path.join(this.dartSdk, 'snapshots', executableNames.analysisServerSnapshot);;  
+  }
+
+  normalizeDartSdkPath(sdkPath) {
+    if (!sdkPath) return null;
+    
+    const singleBinPath = sdkPath
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .sort((a, b) => {
+        const aHasOpt = a.includes('opt');
+        const bHasOpt = b.includes('opt');
+        if (aHasOpt && !bHasOpt) { return -1; }
+        if (!aHasOpt && bHasOpt) { return 1; }
+        return 0;
+      })
+      .map(line => {
+        const lastBinIndex = line.lastIndexOf('bin');
+        if (lastBinIndex !== -1) {
+          return line.slice(0, lastBinIndex + 'bin'.length);
+        }
+        return line;
+      })[0];
+    
+    const sdkBinPath = path.join(singleBinPath, '/cache/dart-sdk/bin');
+    if (fs.existsSync(sdkBinPath)) {
+      return sdkBinPath;  
+    }
+ 
+    return singleBinPath;  
+  }
+
   async detectSdkUsingWhich() {
     try {
       const dartCmd = isWin ? 'where dart' : 'which dart';
@@ -69,13 +113,13 @@ const isLinux = process.platform === 'linux';
       const flutterSdk = await this.runCommand(flutterCmd);
 
       if (dartSdk) {
-        this.dartSdk = this.normalizeSdkPath(path.dirname(dartSdk));
+        this.dartSdk ??= this.normalizeDartSdkPath(path.dirname(dartSdk));
       }
 
       if (flutterSdk) {
-        this.flutterSdk = this.normalizeSdkPath(path.dirname(flutterSdk));
-        this.aSSnapshot = path.join(this.flutterSdk, 'cache/dart-sdk/bin/snapshots', executableNames.analysisServerSnapshot);
-     
+        this.flutterSdk ??= this.normalizeSdkPath(path.dirname(flutterSdk));
+        this.dartFromFlutterSDK ??= this.normalizeDartSdkPath(flutterSdk);
+        this.aSSnapshot ??= this.normalizeSnapshotsPath();
       }
     } catch (error) {
       console.error('Error while running `which`/`where` commands:', error);

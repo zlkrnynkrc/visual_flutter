@@ -1,12 +1,10 @@
-const vscode = require('vscode');
 const DartAnalyzer = require('./services/dart-analyzer');
 const CommandManager = require('./command-manager');
 const ProvidersManager = require('./providers-manager');
 const EventManager = require('./event-manager');
-const { findPaths, projectPath, pubspecPath } = require("./utils/path-provider");
+const { findPaths } = require("./utils/path-provider");
 
 let dartAnalysisServer;
-let disposable;
 
 async function activate(context) {
     console.log("Visual Flutter extension is activated");
@@ -23,8 +21,7 @@ async function activate(context) {
 }
 
 function deactivate() {
-    dartAnalysisServer?.kill();
-    disposable?.dispose();
+    dartAnalysisServer?.stop();
 }
 
 module.exports = {
