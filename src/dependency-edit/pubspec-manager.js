@@ -1,6 +1,5 @@
 const vscode = require('vscode');
 const fs = require('fs');
-const path = require('path');
 const yaml = require('yaml');
 const { pubspecPath } = require("../utils/path-provider");
 

@@ -1,5 +1,4 @@
 const vscode = require('vscode');
-const path = require('path');
 const fs = require('fs');
 const { DOMParser } = require('@xmldom/xmldom');
 const { manifestPath } = require("../utils/path-provider");

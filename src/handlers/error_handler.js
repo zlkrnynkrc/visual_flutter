@@ -1,7 +1,7 @@
 const DartAnalyzer = require('../services/dart-analyzer');
 const FileAnalyzer = require('../services/file-analyzer');
 
-class ErrorHandler {
+export class ErrorHandler {
 
     constructor(error) {
         this._error=error;
