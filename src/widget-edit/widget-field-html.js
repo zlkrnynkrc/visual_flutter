@@ -3,8 +3,6 @@ const { Kind } = require('../widget-list/kinds');
 const { getNonce } = require( '../utils/webview-validator');
 
 function getHtml() {
-    const nonce = getNonce();
-
     return `<!DOCTYPE html>
     <html lang="en">
     <head>
@@ -70,15 +68,17 @@ function getWebviewContent(widgetInfo, webview, extensionUri) {
             <div class="suggestions-panel" id="suggestionsPanel">
                 <ul id="suggestionsList"></ul>
             </div>
-            <script nonce='${nonce}' type='module' src="${scriptUri}"></script>  
+            <script nonce='${nonce}' src="${scriptUri}"></script>  
         </body>
         </html>
     `;
 }
+
 module.exports = {
     getHtml,
     getWebviewContent
 };
+
 function generateInputField(property) {
     const value = property.expression || '';
     const isDefault = property.defvalue !== undefined && property.defvalue !== null;

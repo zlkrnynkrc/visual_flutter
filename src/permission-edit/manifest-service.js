@@ -1,14 +1,16 @@
 const vscode = require('vscode');
-const fs = require('fs');
 const { DOMParser } = require('@xmldom/xmldom');
-const { manifestPath } = require("../utils/path-provider");
-
+const { manifestPath, fileExists } = require("../utils/path-provider");
 
 class ManifestService {
-    readPermissions() {
-        if (!this.isvalidPath()) { return; }
+    
+    async readPermissions() {
+        if (! await this.isValidPath()) { return; }
 
-        const content = fs.readFileSync(manifestPath(), 'utf-8');
+        const decoder = new TextDecoder('utf-8');
+        const uint8Content =
+            await vscode.workspace.fs.readFile(vscode.Uri.file(manifestPath()));
+        const content = decoder.decode(uint8Content);
         const parser = new DOMParser();
         const doc = parser.parseFromString(content, 'text/xml');
         const permissions = Array.from(doc.getElementsByTagName('uses-permission'));
@@ -16,10 +18,14 @@ class ManifestService {
         return permissions.map((node) => node.getAttribute('android:name') || '');
     }
 
-    addPermission(permission) {
-        if (!this.isvalidPath) { return; }
+    async addPermission(permission) {
+        if (! await this.isValidPath()) { return; }
 
-        let content = fs.readFileSync(manifestPath(), 'utf-8');
+        const decoder = new TextDecoder('utf-8');
+        const uint8Content =
+                await vscode.workspace.fs.readFile(vscode.Uri.file(manifestPath()));
+        let content = decoder.decode(uint8Content);
+
         if (content.includes(permission)) {
             vscode.window.showWarningMessage('Permission already exists.');
             return;
@@ -27,26 +33,43 @@ class ManifestService {
         const insertPosition = content.indexOf('</manifest>');
         const newPermission = `    <uses-permission android:name="${permission}" />\n`;
         content = content.slice(0, insertPosition) + newPermission + content.slice(insertPosition);
-        fs.writeFileSync(manifestPath(), content, 'utf-8');
+
+        const encoder = new TextEncoder();
+        await vscode.workspace.fs.writeFile(
+            vscode.Uri.file(manifestPath()),
+            encoder.encode(content)
+        );
         vscode.window.showInformationMessage(`Added permission: ${permission}`);
     }
 
-    removePermission(permission) {
-        if (!this.isvalidPath) { return; }
+    async removePermission(permission) {
+        if (! await this.isValidPath()) { return; }
 
-        let content = fs.readFileSync(manifestPath(), 'utf-8');
+        const decoder = new TextDecoder('utf-8');
+        const uint8Content =
+                await vscode.workspace.fs.readFile(vscode.Uri.file(manifestPath()));
+        let content = decoder.decode(uint8Content);
         const regex = new RegExp(`\\s*<uses-permission android:name="${permission}" />\\s*`, 'g');
+        
         if (!regex.test(content)) {
             vscode.window.showWarningMessage('Permission not found.');
             return;
         }
         content = content.replace(regex, '');
-        fs.writeFileSync(manifestPath(), content, 'utf-8');
+
+        const encoder = new TextEncoder();
+        await vscode.workspace.fs.writeFile(
+            vscode.Uri.file(manifestPath()),
+            encoder.encode(content)
+        );
         vscode.window.showInformationMessage(`Removed permission: ${permission}`);
     }
 
-    isvalidPath() {
-        if (!fs.existsSync(manifestPath())) {
+    async isValidPath() {
+        const path = manifestPath();
+        const existingManifest = path.trim() !== '' && await fileExists(path);
+
+        if (!existingManifest) {
             if (vscode.workspace.workspaceFolders?.length > 0) {
                 vscode.window.showErrorMessage('AndroidManifest.xml not found.');
             }

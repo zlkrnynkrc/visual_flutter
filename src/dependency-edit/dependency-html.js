@@ -184,7 +184,7 @@ class DependencyWebViewHtml {
                 <li onclick="handleListOutdated()">List Outdated</li>
             </ul>
   
-            <script nonce='${nonce}' type='module'>
+            <script nonce='${nonce}'>
                 const vscode = acquireVsCodeApi();
   
                 function refresh() {

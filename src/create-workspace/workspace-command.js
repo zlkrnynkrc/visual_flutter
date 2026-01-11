@@ -1,4 +1,3 @@
-const fs = require("fs");
 const path = require("path");
 const vscode = require("vscode");
 const WorkspaceJsonCreater = require("./workspace-json-creater");
@@ -9,6 +8,7 @@ const platforms = ["Android", "iOS", "macOS", "Linux", "Web", "Windows"];
 class WorkspaceCommand {
     static async createAndApply() {
         const projPath = projectPath();
+
         if (!projPath) {
             vscode.window.showErrorMessage("No folder is opened in VS Code!");
             return;
@@ -54,8 +54,12 @@ class WorkspaceCommand {
 
         // Write the workspace configuration to a file
         const workspaceFilePath = path.join(projPath, ".vscode", workspaceFileName);
-        fs.writeFileSync(workspaceFilePath, JSON.stringify(workspaceConfig, null, 2));
-
+        const encoder = new TextEncoder();
+        const content = JSON.stringify(workspaceConfig, null, 2);
+        await vscode.workspace.fs.writeFile(
+            vscode.Uri.file(workspaceFilePath),
+            encoder.encode(content)
+        );
         // Open the generated workspace
         const uri = vscode.Uri.file(workspaceFilePath);
         await vscode.commands.executeCommand("vscode.openFolder", uri, false);

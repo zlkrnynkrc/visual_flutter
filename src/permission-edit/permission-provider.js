@@ -2,6 +2,7 @@ const { getPermissionsList, getPermissionsMap } = require('./permissin-list');
 const { getNonce, setOnDidChangeVisibility } = require( '../utils/webview-validator');
 
 class PermissionProvider {
+    
     constructor(manifestService) {
         this.manifestService = manifestService;
         this.permissionsMap = getPermissionsMap();
@@ -17,14 +18,14 @@ class PermissionProvider {
         };
         this.updateWebview();
 
-        webviewView.webview.onDidReceiveMessage((message) => {
+        webviewView.webview.onDidReceiveMessage(async (message) => {
             switch (message.command) {
                 case 'addPermission':
-                    this.manifestService.addPermission(message.permission);
+                    await this.manifestService.addPermission(message.permission);
                     this.updateWebview();
                     break;
                 case 'removePermission':
-                    this.manifestService.removePermission(message.permission);
+                    await this.manifestService.removePermission(message.permission);
                     this.updateWebview();
                     break;
             }
@@ -37,8 +38,8 @@ class PermissionProvider {
     }
 
     updateWebview() {
-        const permissions = this.manifestService.readPermissions();
-        this._view.webview.html = this.getWebviewContent(permissions);
+        this.manifestService.readPermissions().then((permissions) => 
+            this._view.webview.html = this.getWebviewContent(permissions));
     }
 
     getShortPermissionName(fullPermission) {
@@ -157,7 +158,7 @@ class PermissionProvider {
                 <ul id="permissionsList">
                     ${permissionsList}
                 </ul>
-                <script nonce='${nonce}' type='module'>
+                <script nonce='${nonce}'>
                     const vscode = acquireVsCodeApi();
                     const permissionsMap = ${JSON.stringify(this.permissionsMap)};
                     const availablePermissions = Object.keys(permissionsMap);

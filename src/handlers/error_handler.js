@@ -30,7 +30,7 @@ export class ErrorHandler {
     async fileNotAnalyzedHandler(filePath) {
         try {
             const fileAnalyzer = FileAnalyzer.getInstance();
-            fileAnalyzer.analyzeFile(filePath);
+            await fileAnalyzer.analyzeFile(filePath);
         } catch (error) {
             console.error('Cant start server: ', error);
         }
