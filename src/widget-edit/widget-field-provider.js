@@ -1,6 +1,8 @@
 const vscode = require('vscode');
 const DartAnalyzer = require('../services/dart-analyzer');
+const { getNonce } = require( '../utils/webview-validator');
 const { getHtml, getWebviewContent } = require('./widget-field-html');
+
 class WidgetFieldProvider {
 
     constructor(extensionUri) {
@@ -18,6 +20,7 @@ class WidgetFieldProvider {
         }
         const config = vscode.workspace.getConfiguration('widgetedit');
         this.instance.isautosave = config.get('autosave') ?? true;
+
         return this.instance;
     }
 
@@ -45,7 +48,7 @@ class WidgetFieldProvider {
                     this.findFirstOccurrenceFromOffset(message.name, this.widgetInfo?.offset);
                     break;
                 default:
-                    vscode.window.showErrorMessage('Error:' + message.newValue);
+                    vscode.window.showErrorMessage('Error: ' + message.newValue);
                     break;
             }
         });
@@ -53,14 +56,16 @@ class WidgetFieldProvider {
     }
 
     updateWebview(widgetInfo) {
-        if (!widgetInfo || !this._view) return;
+        if (!widgetInfo || !this._view) { return; }
+        
         this.widgetInfo = widgetInfo;
         this._view.webview.html = getWebviewContent(widgetInfo, this._view.webview, this.extensionUri);
     }
 
     async updateWidgetProperty(message) {
         const prop = this.widgetInfo?.result.properties.find(i => i.name === message.propertyName);
-        if (this.isUpdatingProperty) return;
+
+        if (this.isUpdatingProperty) { return; }
 
         const widgetRange = await this.getWidgetConstructorRange();
         if (!widgetRange) {
@@ -69,7 +74,8 @@ class WidgetFieldProvider {
         }
 
         const widgetCode = vscode.window.activeTextEditor?.document;
-        if (!widgetCode) return;
+
+        if (!widgetCode) { return; }
 
         let widgetText = widgetCode.getText(widgetRange);
         let newCode = widgetText;
@@ -89,6 +95,7 @@ class WidgetFieldProvider {
 
         if (this.isautosave) {
             const activeEditor = vscode.window.activeTextEditor;
+
             if (activeEditor) {
                 const document = activeEditor.document;
                 document.save();
@@ -118,7 +125,8 @@ class WidgetFieldProvider {
 
     async getWidgetConstructorRange() {
         const document = vscode.window.activeTextEditor?.document;
-        if (!document || !this.widgetInfo?.offset) return null;
+
+        if (!document || !this.widgetInfo?.offset) { return null; }
 
         const startPosition = document.positionAt(this.widgetInfo.offset);
         let currentPosition = document.offsetAt(startPosition) + this.widgetInfo.end.character - this.widgetInfo.start.character;
@@ -179,9 +187,10 @@ class WidgetFieldProvider {
 
     moveToWidgetName(editor, document, textFromOffset, offset, indexInSubstring, searchText) {
         let positionInDocument = offset + indexInSubstring + searchText.length;
-        const remainingText = textFromOffset.substring(indexInSubstring + searchText.length);
 
+        const remainingText = textFromOffset.substring(indexInSubstring + searchText.length);
         const widgetName = this.extractWidgetName(remainingText);
+
         if (widgetName) {
             this.moveCursorToPosition(editor, document, positionInDocument, remainingText, widgetName);
         }
@@ -190,6 +199,7 @@ class WidgetFieldProvider {
     extractWidgetName(text) {
         const widgetNameRegex = /\bconst\s+([A-Za-z_]\w*)\b|\b([A-Za-z_]\w*)\b/g;
         const match = widgetNameRegex.exec(text);
+
         return match ? (match[1] || match[2]) : null;
     }
 
@@ -208,6 +218,7 @@ class WidgetFieldProvider {
 
     async getSuggestions(message) {
         const editor = vscode.window.activeTextEditor;
+        
         if (editor) {
             const position = editor.selection.active;
             const document = editor.document;
@@ -252,11 +263,14 @@ class WidgetFieldProvider {
     }
 
     showInvalidProjectMessage() {
+        const nonce = getNonce();
+
         this._view.webview.html = `<!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta http-equiv="Content-Security-Policy">
             <title>Widget Properties</title>
         </head>
         <body> 

@@ -22,7 +22,7 @@ class DartAnalyzer {
   }
 
   async start() {
-    if (this.analysisServer.isRunning()) return;
+    if (this.analysisServer.isRunning()) { return; }
 
     await this.sdkFinder.detectSdks();
 

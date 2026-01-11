@@ -1,5 +1,7 @@
 const vscode = require('vscode');
+const { getNonce, setOnDidChangeVisibility } = require( '../utils/webview-validator');
 const { getFlutterWidgetsList } = require('../utils/widget-list');
+
 class WidgetListProvider {
 
     constructor(extensionUri) {
@@ -14,28 +16,23 @@ class WidgetListProvider {
             enableScripts: true,
             localResourceRoots: [this._extensionUri]
         };
-
         webviewView.webview.html = await this._getHtmlContent(webviewView.webview);
 
-        webviewView.onDidChangeVisibility(() => {
-            if (this._view && !this._view.visible) {
-                this.dispose();
-            }
-        });
+        setOnDidChangeVisibility(webviewView, () => this.dispose());
     }
 
     async _getHtmlContent(webview) {
+        const nonce = getNonce();
         const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'styles.css'));
         const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'script_list.js'));
         const flutterWidgets = await getFlutterWidgetsList();
-
-
-        return `
-        <!DOCTYPE html>
+        
+        return `<!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta http-equiv="Content-Security-Policy">
             <title>Flutter Widget List</title>
             <link href="${styleUri}" rel="stylesheet">
         </head>
@@ -48,7 +45,7 @@ class WidgetListProvider {
                     <span class="widget-icon">${widget.icon}</span>
                 </li>
             `).join('')}
-            <script src="${scriptUri}"></script>
+            <script nonce='${nonce}' src="${scriptUri}"></script>
         </body>
         </html>`;
     }
@@ -63,12 +60,12 @@ class WidgetListProvider {
 
     showInvalidProjectMessage() {
         if (this._view) {
-            this._view.webview.html = `
-            <!DOCTYPE html>
+            this._view.webview.html = `<!DOCTYPE html>
             <html lang="en">
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <meta http-equiv="Content-Security-Policy">
                 <title>Widget Properties</title>
             </head>
             <body>

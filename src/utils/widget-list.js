@@ -61,9 +61,7 @@ async function getFlutterWidgetsList() {
 		//flutterWidgets.push(...newWidgets);
 
 		return newWidgets;
-
-		// eslint-disable-next-line no-unused-vars
-	} catch (error) {
+	} catch {
 		vscode.window.showErrorMessage('Failed to find custom widgets');
 	}
 }

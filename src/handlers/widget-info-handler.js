@@ -22,7 +22,7 @@ class WidgetInfoHandler {
                 return widgetInfo.result || null;
             }
         } catch (error) {
-            console.error('Error getting widget description:', error);
+            console.error('Error getting widget description: ', error);
             switch (error) {
                 case 'Analysis server not started':
                     await this.analyzerServerNotStartedHandler();
@@ -38,11 +38,13 @@ class WidgetInfoHandler {
     static async getHoverInfo(document, position) {
         const hoverResponse = await vscode.commands.executeCommand('vscode.executeHoverProvider', document.uri, position);
 
-        if (Array.isArray(hoverResponse)) {
-        if (!hoverResponse?.length) return null;
+        if (Array.isArray(hoverResponse))
+        {
+            if (!hoverResponse?.length) { return null; }
 
-        const hover = hoverResponse[0];
-        const range = hover.range;
+            const hover = hoverResponse[0];
+            const range = hover.range;
+
             for (const hoverItem of hoverResponse) {
                 for (const content of hoverItem.contents) {
                     const dartString = content instanceof vscode.MarkdownString
@@ -54,7 +56,7 @@ class WidgetInfoHandler {
                     if (dartString) {
                         const widgetDetail = this.parseWidgetProperties(dartString);
 
-                        if (!widgetDetail) return null;
+                        if (!widgetDetail) { return null; }
 
                         if (range) {
                             widgetDetail.start = range.start;
@@ -70,7 +72,7 @@ class WidgetInfoHandler {
 
     static parseWidgetProperties(code) {
         const widgetNameMatch = code.match(/(\(\w+\))?\s*(\w+)\(/);
-        if (!widgetNameMatch) return null;
+        if (!widgetNameMatch) { return null; }
 
         const widgetName = widgetNameMatch[2];
         const properties = [];
@@ -79,7 +81,7 @@ class WidgetInfoHandler {
 
         properties1.forEach(line => {
             const trimmedLine = line.trim();
-            if (!trimmedLine) return;
+            if (!trimmedLine) { return; }
 
             const isRequired = trimmedLine.startsWith('required');
             const [nameType, value] = trimmedLine.split('=').map(part => part.trim());
@@ -148,7 +150,7 @@ class WidgetInfoHandler {
             const widgetInfo = await dartAnalyzer.sendRequest(request);
             return widgetInfo.result || null;
         } catch (error) {
-            console.error('Error fetching widget description:', error);
+            console.error('Error fetching widget description: ', error);
         }
     }
 
@@ -167,7 +169,7 @@ class WidgetInfoHandler {
             const dartAnalyzer = DartAnalyzer.getInstance();
             dartAnalyzer.start();
         } catch (error) {
-            console.error('Cant start server:', error);
+            console.error('Cant start server: ', error);
         }
     }
     static async fileNotAnalyzedHandler(filePath) {
@@ -175,7 +177,7 @@ class WidgetInfoHandler {
             const fileAnalyzer = FileAnalyzer.getInstance();
             fileAnalyzer.analyzeFile(filePath);
         } catch (error) {
-            console.error('Cant start server:', error);
+            console.error('Cant start server: ', error);
         }
     }
 }

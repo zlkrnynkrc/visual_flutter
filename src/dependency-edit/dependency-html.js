@@ -1,5 +1,8 @@
+const { getNonce } = require( '../utils/webview-validator');
+
 class DependencyWebViewHtml {
     static generate(dependencies) {
+        const nonce = getNonce();
         const rows = dependencies
             .map((dep) => {
                 const isLatest = dep.current == '^' + dep.latest;
@@ -30,6 +33,8 @@ class DependencyWebViewHtml {
         <!DOCTYPE html>
         <html lang="en">
         <head>
+            <meta charset="UTF-8">
+            <meta http-equiv="Content-Security-Policy">
             <style>
                 /* Root Styling */
                 body {
@@ -179,7 +184,7 @@ class DependencyWebViewHtml {
                 <li onclick="handleListOutdated()">List Outdated</li>
             </ul>
   
-            <script>
+            <script nonce='${nonce}' type='module'>
                 const vscode = acquireVsCodeApi();
   
                 function refresh() {
@@ -187,7 +192,7 @@ class DependencyWebViewHtml {
                 }
   
                 // Right-click menu logic
-               const contextMenu = document.getElementById('context-menu');
+                const contextMenu = document.getElementById('context-menu');
                 let selectedDependency = null;
 
                 document.addEventListener('contextmenu', (event) => {
@@ -197,21 +202,21 @@ class DependencyWebViewHtml {
                     if (row) {
                         selectedDependency = row.dataset.dependency;
         
-                    // Position the context menu exactly where the cursor is
-                    contextMenu.style.left = \`\${event.clientX}px\`;
-                    contextMenu.style.top = \`\${event.clientY}px\`;
-                    contextMenu.style.display = 'block';
-                } else {
-                    contextMenu.style.display = 'none';
-                }
-            });
+                        // Position the context menu exactly where the cursor is
+                        contextMenu.style.left = \`\${event.clientX}px\`;
+                        contextMenu.style.top = \`\${event.clientY}px\`;
+                        contextMenu.style.display = 'block';
+                    } else {
+                        contextMenu.style.display = 'none';
+                    }
+                });
 
-            // Hide context menu when clicking elsewhere
-            document.addEventListener('click', (event) => {
-                if (!event.target.closest('.context-menu')) {
-                    contextMenu.style.display = 'none';
-                }
-            });
+                // Hide context menu when clicking elsewhere
+                document.addEventListener('click', (event) => {
+                    if (!event.target.closest('.context-menu')) {
+                        contextMenu.style.display = 'none';
+                    }
+                });
                 document.addEventListener('click', () => {
                     contextMenu.style.display = 'none';
                 });

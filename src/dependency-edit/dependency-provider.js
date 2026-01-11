@@ -1,13 +1,15 @@
 const vscode = require('vscode');
 const DependencyWebViewHtml = require('./dependency-html');
+const { setOnDidChangeVisibility } = require('../utils/webview-validator');
+
 class DependencyProvider {
+
   constructor(extensionUri, dependencyService, pubspecManager) {
     this.extensionUri = extensionUri;
     this.dependencyService = dependencyService;
     this.pubspecManager = pubspecManager;
     this._view = undefined;
     this.dependencies = [];
-
   }
 
   resolveWebviewView(webviewView) {
@@ -38,19 +40,16 @@ class DependencyProvider {
           break;
       }
     });
-    webviewView.onDidChangeVisibility(() => {
-      if (!webviewView.visible) {
-        this.dispose();
-      }
-    });
+    setOnDidChangeVisibility(webviewView, () => this.dispose());
   }
+
   dispose() {
-    this._view.dispose();
+    this._view?.dispose();
   }
 
   async updateWebviewContent() {
     const pubspec = await this.pubspecManager.readPubspec();
-    if (!pubspec) return;
+    if (!pubspec) { return; }
 
     this.dependencies = await this.dependencyService.fetchDependencies(pubspec);
     const html = DependencyWebViewHtml.generate(this.dependencies);
@@ -95,7 +94,9 @@ class DependencyProvider {
 
   refresh(dependency) {
     const pubspec = this.pubspecManager.readPubspec();
-    if (!pubspec) return;
+
+    if (!pubspec) { return; }
+
     this.dependencies = pubspec.dependencies;
     pubspec.dependencies[dependency.name] = dependency.latest;
     this.updateWebviewContent();

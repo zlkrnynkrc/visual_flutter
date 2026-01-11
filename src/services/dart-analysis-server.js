@@ -13,7 +13,7 @@ class DartAnalysisServer {
   }
   start(dartExecutablePath, analyzerSnapshotPath) {
     this.serverProcess = spawn(dartExecutablePath, [analyzerSnapshotPath]);
-    this.listen();
+    this._listen();
   }
 
   isRunning() {
@@ -32,7 +32,7 @@ class DartAnalysisServer {
     });
   }
 
-  listen() {
+  _listen() {
     let buffer = '';
     this.serverProcess.stdout.on('data', (chunk) => {
       buffer += chunk.toString();

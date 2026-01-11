@@ -5,7 +5,6 @@ const { manifestPath } = require("../utils/path-provider");
 
 
 class ManifestService {
-
     readPermissions() {
         if (!this.isvalidPath(false)) {
             return;
@@ -14,8 +13,8 @@ class ManifestService {
         const parser = new DOMParser();
         const doc = parser.parseFromString(content, 'text/xml');
         const permissions = Array.from(doc.getElementsByTagName('uses-permission'));
+        
         return permissions.map((node) => node.getAttribute('android:name') || '');
-
     }
 
     addPermission(permission) {
@@ -48,6 +47,7 @@ class ManifestService {
         fs.writeFileSync(manifestPath(), content, 'utf-8');
         vscode.window.showInformationMessage(`Removed permission: ${permission}`);
     }
+
     isvalidPath(showWarning = true) {
         if (!fs.existsSync(manifestPath())) {
             if (showWarning) {
@@ -58,4 +58,5 @@ class ManifestService {
         return true;
     }
 }
+
 module.exports = ManifestService;

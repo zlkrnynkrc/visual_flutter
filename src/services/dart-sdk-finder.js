@@ -54,7 +54,7 @@ const isWin = process.platform === 'win32';
   }
 
   normalizeSdkPath(sdkPath) {
-    if (!sdkPath) return null;
+    if (!sdkPath) { return null; }
 
     const sdkBinPath = path.join(sdkPath, 'bin');
     if (fs.existsSync(sdkBinPath)) {
@@ -65,7 +65,7 @@ const isWin = process.platform === 'win32';
   }
 
   normalizeSnapshotsPath() {
-    if (!this.dartFromFlutterSDK) return null;
+    if (!this.dartFromFlutterSDK) { return null; }
  
     const snapPath = path.join(this.dartFromFlutterSDK, 'snapshots', executableNames.analysisServerSnapshot);
     if (fs.existsSync(snapPath)) {
@@ -76,7 +76,7 @@ const isWin = process.platform === 'win32';
   }
 
   normalizeDartSdkPath(sdkPath) {
-    if (!sdkPath) return null;
+    if (!sdkPath) { return null; }
     
     const singleBinPath = sdkPath
       .split(/\r?\n/)
@@ -122,7 +122,7 @@ const isWin = process.platform === 'win32';
         this.aSSnapshot ??= this.normalizeSnapshotsPath();
       }
     } catch (error) {
-      console.error('Error while running `which`/`where` commands:', error);
+      console.error('Error while running `which`/`where` commands: ', error);
     }
   }
  

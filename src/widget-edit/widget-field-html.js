@@ -1,13 +1,16 @@
-
-const { Kind } = require('../widget-list/kinds');
 const vscode = require('vscode');
+const { Kind } = require('../widget-list/kinds');
+const { getNonce } = require( '../utils/webview-validator');
 
 function getHtml() {
+    const nonce = getNonce();
+
     return `<!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="Content-Security-Policy">
         <title>Widget Properties</title>
         <style>
             table {
@@ -22,11 +25,13 @@ function getHtml() {
         </style>
     </head>
     <body> 
-        <h3>Edit Widget Properties</h3></body>
-        </html>`;
+        <h3>Edit Widget Properties</h3>
+    </body>
+    </html>`;
 }
 
 function getWebviewContent(widgetInfo, webview, extensionUri) {
+    const nonce = getNonce();
     const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'media', 'styles.css'));
     const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'media', 'scripts.js'));
     widgetInfo.result.properties.sort((a, b) => {
@@ -52,19 +57,20 @@ function getWebviewContent(widgetInfo, webview, extensionUri) {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Widget Properties</title> 
+            <meta http-equiv="Content-Security-Policy">
+            <title>Widget Properties</title>
             <link rel="stylesheet" href="${styleUri}">
         </head>
         <body>
             <h2>${widgetInfo.name}</h2>
             <div id="dynamicList"  class="dropdown-content"></div>
             <table>
-            ${tableRows}
+                ${tableRows}
             </table> 
             <div class="suggestions-panel" id="suggestionsPanel">
                 <ul id="suggestionsList"></ul>
             </div>
-            <script src="${scriptUri}"></script>  
+            <script nonce='${nonce}' type='module' src="${scriptUri}"></script>  
         </body>
         </html>
     `;

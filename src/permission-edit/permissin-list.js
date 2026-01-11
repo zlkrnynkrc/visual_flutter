@@ -1,11 +1,8 @@
 function getPermissionsList() {
-  
     return Object.keys(getPermissionsMap());
-    
 }
+
 function getPermissionsMap() {
-    
-    
     const  permissionsMap = {
         // Android permissions
         "ACCESS_CHECKIN_PROPERTIES": "android.permission.ACCESS_CHECKIN_PROPERTIES",
@@ -169,8 +166,8 @@ function getPermissionsMap() {
         "MAPS_RECEIVE": "com.google.android.providers.gsf.permission.READ_GSERVICES",
         "CHECK_LICENSE": "com.android.vending.CHECK_LICENSE"
     };
-    return permissionsMap;
     
+    return permissionsMap;
 }
 
 module.exports = {getPermissionsList,getPermissionsMap};

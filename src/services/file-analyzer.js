@@ -42,7 +42,7 @@ class FileAnalyzer {
   }
   analyzeFile(filePath) {
     try {
-      if (this.analyzedProjectFiles.has(filePath)) return;
+      if (this.analyzedProjectFiles.has(filePath)) { return; }
 
       this.analyzedProjectFiles.add(filePath);
 
@@ -66,9 +66,8 @@ class FileAnalyzer {
           },
         },
       });
-      // eslint-disable-next-line no-unused-vars
-    } catch (error) {
-      vscode.window.showInformationMessage('Analyzing Eror path:' + filePath);
+    } catch {
+      vscode.window.showInformationMessage('Analyzing Eror path: ' + filePath);
     }
   }
 }

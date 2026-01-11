@@ -7,7 +7,7 @@ function extractConstructorParams(content, widgetName) {
     const constructorRegex = new RegExp(`${widgetName}\\s*\\(\\{([^}]+)\\}\\)\\s*;`, 's');
     const match = content.match(constructorRegex);
 
-    if (!match) return [];
+    if (!match) { return []; }
 
     // More comprehensive regex for parameter extraction
     const paramRegex = /(?:(?:required\s+)?(?:final\s+)?(?:const\s+)?)?(?:(?:super\.)?([a-zA-Z]\w*)\s*=\s*([^,]+)?|([a-zA-Z]\w*)\s+([a-zA-Z]\w*)(?:\s*=\s*([^,]+)?)?|\s*this\.([a-zA-Z]\w*)(?:\s*=\s*([^,]+)?)?)/g;
@@ -95,7 +95,7 @@ function generateWidgetTemplate(widgetName, params) {
 }
 
 async function findCustomWidgetFiles() {
-    if (!libPath) {
+    if (!libPath()) {
         vscode.window.showInformationMessage('No workspace folder open');
         return [];
     }

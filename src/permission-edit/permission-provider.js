@@ -1,4 +1,5 @@
 const { getPermissionsList, getPermissionsMap } = require('./permissin-list');
+const { getNonce, setOnDidChangeVisibility } = require( '../utils/webview-validator');
 
 class PermissionProvider {
     constructor(manifestService) {
@@ -6,11 +7,11 @@ class PermissionProvider {
         this.permissionsMap = getPermissionsMap();
         this.availablePermissions = getPermissionsList();
         this._view = undefined;
-
     }
 
     resolveWebviewView(webviewView) {
         this._view = webviewView;
+        
         webviewView.webview.options = {
             enableScripts: true,
         };
@@ -28,15 +29,11 @@ class PermissionProvider {
                     break;
             }
         });
-        webviewView.onDidChangeVisibility(() => {
-            if (!webviewView.visible) {
-                this.dispose();
-            }
-        });
+        setOnDidChangeVisibility(webviewView, () => this.dispose());
     }
+    
     dispose() {
         this._view.dispose();
-
     }
 
     updateWebview() {
@@ -50,15 +47,18 @@ class PermissionProvider {
     }
 
     getWebviewContent(permissions) {
+        const nonce = getNonce();
+
         if (!permissions) {
             return `<!DOCTYPE html>
             <html lang="en">
                 <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <meta http-equiv="Content-Security-Policy">
                 </head>
                 <body>
-                    <h5>Nothing to show<h5>
+                    <h3>Edit Android Permissions<h3>
                 </body>
             </html>`;
         }
@@ -75,6 +75,7 @@ class PermissionProvider {
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <meta http-equiv="Content-Security-Policy">
                 <title>Manage Permissions</title>
                 <style>
                     body {
@@ -156,7 +157,7 @@ class PermissionProvider {
                 <ul id="permissionsList">
                     ${permissionsList}
                 </ul>
-                <script>
+                <script nonce='${nonce}' type='module'>
                     const vscode = acquireVsCodeApi();
                     const permissionsMap = ${JSON.stringify(this.permissionsMap)};
                     const availablePermissions = Object.keys(permissionsMap);

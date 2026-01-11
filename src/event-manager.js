@@ -52,8 +52,8 @@ class EventManager {
         this.context.subscriptions.push({
             dispose: () => {
                 this.dartAnalysisServer?.stop();
-                this.providersManager.widgetListProvider.disposeProvider();
-                this.providersManager.fieldProvider.disposeProvider();
+                this.providersManager.widgetListProvider?.disposeProvider();
+                this.providersManager.fieldProvider?.disposeProvider();
             }
         });
     }

@@ -5,9 +5,10 @@ class DependencyService {
     try {
       const response = await fetch(`https://pub.dev/api/packages/${dependency}`);
       const data = await response.json();
+      
       return data.latest?.version || 'Unknown';
-    // eslint-disable-next-line no-unused-vars
-    } catch (e) { 
+    } catch (e) {
+      console.log(`Fetching latest version of ${dependency} error: ${e}`)
       return 'Unknown';
     }
   }

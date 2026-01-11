@@ -24,7 +24,7 @@ export class ErrorHandler {
             const dartAnalyzer = DartAnalyzer.getInstance();
             dartAnalyzer.start();
         } catch (error) {
-            console.error('Cant start server:', error);
+            console.error('Cant start server: ', error);
         }
     }
     async fileNotAnalyzedHandler(filePath) {
@@ -32,7 +32,7 @@ export class ErrorHandler {
             const fileAnalyzer = FileAnalyzer.getInstance();
             fileAnalyzer.analyzeFile(filePath);
         } catch (error) {
-            console.error('Cant start server:', error);
+            console.error('Cant start server: ', error);
         }
     }
 }

@@ -7,18 +7,18 @@ const { pubspecPath } = require("../utils/path-provider");
 class PubspecManager {
 
   async readPubspec() {
-    if (!pubspecPath()) return null;
+    if (!pubspecPath()) { return null; }
 
     try {
       const fileContent = fs.readFileSync(pubspecPath(), 'utf8');
       return yaml.parse(fileContent);
     } catch (error) {
-      vscode.window.showInformationMessage('Pubspec error:' + error + '\n')
+      vscode.window.showInformationMessage('Pubspec error: ' + error + '\n')
     }
   }
 
   async writePubspec(pubspec) {
-    if (!pubspecPath()) return;
+    if (!pubspecPath()) { return; }
 
     try {
       const updatedContent = yaml.stringify(pubspec);
