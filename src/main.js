@@ -3,11 +3,15 @@ const CommandManager = require('./command-manager');
 const ProvidersManager = require('./providers-manager');
 const EventManager = require('./event-manager');
 const { findPaths } = require("./utils/path-provider");
+const vscode = require('vscode');
 
 let dartAnalysisServer;
 
 async function activate(context) {
-    console.log("Visual Flutter extension is activated");
+    console.log(
+        "Visual Flutter extension is activated (workspace: " 
+        + vscode.workspace.name + ")"
+    );
     await findPaths();
     const commandManager = new CommandManager(context);
     commandManager.registerCommands();

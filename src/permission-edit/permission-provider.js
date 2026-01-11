@@ -1,8 +1,13 @@
 const { getPermissionsList, getPermissionsMap } = require('./permissin-list');
 const { getNonce, setOnDidChangeVisibility } = require( '../utils/webview-validator');
 
+const commands = {
+    add : 'addPermission',
+    remove : 'removePermission'
+}
+
 class PermissionProvider {
-    
+
     constructor(manifestService) {
         this.manifestService = manifestService;
         this.permissionsMap = getPermissionsMap();
@@ -20,11 +25,11 @@ class PermissionProvider {
 
         webviewView.webview.onDidReceiveMessage(async (message) => {
             switch (message.command) {
-                case 'addPermission':
+                case commands.add:
                     await this.manifestService.addPermission(message.permission);
                     this.updateWebview();
                     break;
-                case 'removePermission':
+                case commands.remove:
                     await this.manifestService.removePermission(message.permission);
                     this.updateWebview();
                     break;
@@ -144,7 +149,7 @@ class PermissionProvider {
                 </style>
             </head>
             <body>
-                <h1>Manage Android Permissions</h1>
+                <h2>Manage Android Permissions</h2>
                 <div class="dropdown-container">
                     <input 
                         type="text" 
@@ -198,7 +203,7 @@ class PermissionProvider {
                     function selectPermission(shortPermission) {
                         const fullPermission = permissionsMap[shortPermission];
                         vscode.postMessage({ 
-                            command: 'addPermission', 
+                            command: '${commands.add}', 
                             permission: fullPermission
                         });
                         searchInput.value = '';
@@ -207,7 +212,7 @@ class PermissionProvider {
 
                     function removePermission(fullPermission) {
                         vscode.postMessage({ 
-                            command: 'removePermission',
+                            command: '${commands.remove}',
                             permission: fullPermission 
                         });
                     }

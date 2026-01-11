@@ -96,13 +96,12 @@ function generateWidgetTemplate(widgetName, params) {
 
 async function findCustomWidgetFiles() {
     if (!libPath()) {
-        vscode.window.showInformationMessage('No workspace folder open');
+        vscode.window.showInformationMessage('No pubspec.yaml or lib folder found');
         return [];
     }
 
     const customWidgets = [];
     const globPattern = new vscode.RelativePattern(libPath(), '**/*.dart');
-
     const dartFiles = await vscode.workspace.findFiles(globPattern);
 
     for (const fileUri of dartFiles) {
