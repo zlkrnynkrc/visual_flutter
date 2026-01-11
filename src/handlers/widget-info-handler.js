@@ -156,10 +156,9 @@ class WidgetInfoHandler {
 
     static getOffset(line, column) {
         const fileContent = vscode.window.activeTextEditor?.document?.getText();
-        if (!fileContent) {
-            vscode.window.showWarningMessage('File content not found');
-            return;
-        }
+        
+        if (!fileContent) { return; }
+
         return fileContent.split('\n')
             .slice(0, line)
             .reduce((offset, lineContent) => offset + lineContent.length + 1, 0) + column;

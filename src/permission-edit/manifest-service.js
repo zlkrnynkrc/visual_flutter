@@ -6,9 +6,8 @@ const { manifestPath } = require("../utils/path-provider");
 
 class ManifestService {
     readPermissions() {
-        if (!this.isvalidPath(false)) {
-            return;
-        }
+        if (!this.isvalidPath()) { return; }
+
         const content = fs.readFileSync(manifestPath(), 'utf-8');
         const parser = new DOMParser();
         const doc = parser.parseFromString(content, 'text/xml');
@@ -18,9 +17,8 @@ class ManifestService {
     }
 
     addPermission(permission) {
-        if (!this.isvalidPath) {
-            return;
-        }
+        if (!this.isvalidPath) { return; }
+
         let content = fs.readFileSync(manifestPath(), 'utf-8');
         if (content.includes(permission)) {
             vscode.window.showWarningMessage('Permission already exists.');
@@ -34,9 +32,8 @@ class ManifestService {
     }
 
     removePermission(permission) {
-        if (!this.isvalidPath) {
-            return;
-        }
+        if (!this.isvalidPath) { return; }
+
         let content = fs.readFileSync(manifestPath(), 'utf-8');
         const regex = new RegExp(`\\s*<uses-permission android:name="${permission}" />\\s*`, 'g');
         if (!regex.test(content)) {
@@ -48,9 +45,9 @@ class ManifestService {
         vscode.window.showInformationMessage(`Removed permission: ${permission}`);
     }
 
-    isvalidPath(showWarning = true) {
+    isvalidPath() {
         if (!fs.existsSync(manifestPath())) {
-            if (showWarning) {
+            if (vscode.workspace.workspaceFolders?.length > 0) {
                 vscode.window.showErrorMessage('AndroidManifest.xml not found.');
             }
             return false;
