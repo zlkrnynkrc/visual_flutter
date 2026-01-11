@@ -1,4 +1,3 @@
-
 const WidgetFieldProvider = require('./widget-edit/widget-field-provider');
 const WidgetInfoHandler = require('./handlers/widget-info-handler');
 const DocumentSaveHandler = require('./handlers/document-save-handler');
@@ -52,8 +51,8 @@ class EventManager {
     _registerDisposeListener() {
         this.context.subscriptions.push({
             dispose: () => {
-                this.dartAnalysisServer?.kill();
-                this.providersManager.listProvider.disposeProvider();
+                this.dartAnalysisServer?.stop();
+                this.providersManager.widgetListProvider.disposeProvider();
                 this.providersManager.fieldProvider.disposeProvider();
             }
         });

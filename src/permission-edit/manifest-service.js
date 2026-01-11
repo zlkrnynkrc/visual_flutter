@@ -7,7 +7,7 @@ const { manifestPath } = require("../utils/path-provider");
 class ManifestService {
 
     readPermissions() {
-        if (!this.isvalidPath) {
+        if (!this.isvalidPath(false)) {
             return;
         }
         const content = fs.readFileSync(manifestPath(), 'utf-8');
@@ -48,12 +48,14 @@ class ManifestService {
         fs.writeFileSync(manifestPath(), content, 'utf-8');
         vscode.window.showInformationMessage(`Removed permission: ${permission}`);
     }
-    isvalidPath() {
+    isvalidPath(showWarning = true) {
         if (!fs.existsSync(manifestPath())) {
-            vscode.window.showErrorMessage('AndroidManifest.xml not found.');
+            if (showWarning) {
+                vscode.window.showErrorMessage('AndroidManifest.xml not found.');
+            }
             return false;
         }
-        return false;
+        return true;
     }
 }
 module.exports = ManifestService;

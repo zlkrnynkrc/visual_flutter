@@ -58,7 +58,7 @@ class WidgetListProvider {
     }
 
     dispose() {
-        this._view.dispose();
+        this._view?.dispose();
     }
 
     showInvalidProjectMessage() {

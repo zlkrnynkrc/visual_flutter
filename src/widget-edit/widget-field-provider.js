@@ -246,7 +246,9 @@ class WidgetFieldProvider {
     }
 
     dispose() {
-        this._view.dispose();
+        if (this._view) {
+            this._view?.dispose();
+        }
     }
 
     showInvalidProjectMessage() {

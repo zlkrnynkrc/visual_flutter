@@ -16,7 +16,7 @@ class FileAnalyzer {
     return this.instance;
   }
   async analyzeProjectFiles(projectPath) {
-    if (!this.checkLibPath(projectPath)) {
+    if (! await this.checkLibPath(projectPath)) {
       return false;
     }
     const stats = fs.statSync(projectPath);

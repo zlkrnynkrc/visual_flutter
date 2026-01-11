@@ -6,15 +6,15 @@ let manifestpath;
 let libpath;
 async function findPaths() {
     projectpath = await ProjectMainPath.getPath()
-    pubspecpath = path.join(projectpath, 'pubspec.yaml');
-    libpath = path.join(projectpath, 'lib');
-    manifestpath = path.join(projectpath,
+    pubspecpath = projectpath ? path.join(projectpath, 'pubspec.yaml') : '';
+    libpath = projectpath ? path.join(projectpath, 'lib') : null;
+    manifestpath = projectpath ? path.join(projectpath,
         'android',
         'app',
         'src',
         'main',
-        'AndroidManifest.xml');
-
+        'AndroidManifest.xml')
+    : '';
 }
 function pubspecPath() {
     return pubspecpath;

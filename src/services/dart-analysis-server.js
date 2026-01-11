@@ -13,7 +13,7 @@ class DartAnalysisServer {
   }
   start(dartExecutablePath, analyzerSnapshotPath) {
     this.serverProcess = spawn(dartExecutablePath, [analyzerSnapshotPath]);
-    this._listen();
+    this.listen();
   }
 
   isRunning() {
@@ -32,13 +32,23 @@ class DartAnalysisServer {
     });
   }
 
-  _listen() {
-    this.serverProcess.stdout.on('data', (data) => {
-      const response = JSON.parse(data.toString());
-      const handler = this.responseHandlers[response.id];
-      if (handler) {
-        handler(response);
-        delete this.responseHandlers[response.id];
+  listen() {
+    let buffer = '';
+    this.serverProcess.stdout.on('data', (chunk) => {
+      buffer += chunk.toString();
+      let idx;
+      while ((idx = buffer.indexOf('\n')) >= 0) {
+        const line = buffer.slice(0, idx).trim();
+        buffer = buffer.slice(idx + 1);
+
+        if (!line) continue;
+
+        const response = JSON.parse(line);
+        const handler = this.responseHandlers[response.id];
+        if (handler) {
+          handler(response);
+          delete this.responseHandlers[response.id];
+        }
       }
     });
 
