@@ -6,8 +6,6 @@ const Kind = {
     INT: "INT",
     Widget: "Widget",
     WidgetLike: "WidgetLike",
-  };
-  module.exports = {
-    Kind,
-  };
-  
+};
+
+module.exports = { Kind };
