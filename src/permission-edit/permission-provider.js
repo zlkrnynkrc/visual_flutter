@@ -1,4 +1,4 @@
-const { getPermissionsList, getPermissionsMap } = require('./permissin-list');
+const { getPermissionsList, getPermissionsMap } = require('./permission-list');
 const { getNonce, setOnDidChangeVisibility } = require( '../utils/webview-validator');
 
 const commands = {
