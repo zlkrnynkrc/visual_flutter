@@ -184,5 +184,8 @@
     "@xmldom/xmldom": "^0.9.5",
     "node-fetch": "^2.7.0",
     "yaml": "^2.6.0"
+  },
+  "overrides": {
+    "ajv": "8.17.1"
   }
 }

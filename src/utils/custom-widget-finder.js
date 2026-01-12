@@ -96,7 +96,11 @@ function generateWidgetTemplate(widgetName, params) {
 
 async function findCustomWidgetFiles() {
     if (!libPath()) {
-        vscode.window.showInformationMessage('No pubspec.yaml or lib folder found');
+        if (vscode.workspace.workspaceFolders?.length > 0) {
+            vscode.window.showInformationMessage('No pubspec.yaml or lib folder found');
+        } else {
+            vscode.window.showInformationMessage('No workspace folder opened');
+        }
         return [];
     }
 
