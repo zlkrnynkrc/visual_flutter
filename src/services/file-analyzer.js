@@ -28,12 +28,13 @@ class FileAnalyzer {
         if (isFile(stat.type) && projectPath.endsWith('.dart')) {
             this.analyzeFile(projectPath);
         } else if (isDirectory(stat.type)) {
-            const files = await vscode.workspace.fs.readDirectory(vscode.Uri.file(projectPath));
-
+            const files = await vscode.workspace.fs.readDirectory(
+                vscode.Uri.file(projectPath)
+            );
             for (const [filename, filetype] of files) {
                 if (isFile(filetype) && filename.endsWith('.dart')) {
                     const filePath = path.join(projectPath, filename);
-                    this.analyzeFile(filePath);
+                    await this.analyzeFile(filePath);
                 }
             }
         }

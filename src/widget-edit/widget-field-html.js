@@ -29,6 +29,10 @@ function getHtml() {
 }
 
 function getWebviewContent(widgetInfo, webview, extensionUri) {
+    if (!widgetInfo.result) {
+        vscode.window.showWarningMessage('Cannot read widget properties. Widget: ' + widgetInfo);
+        return
+    }
     const nonce = getNonce();
     const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'media', 'styles.css'));
     const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'media', 'scripts.js'));

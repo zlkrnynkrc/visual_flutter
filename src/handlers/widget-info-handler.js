@@ -3,6 +3,7 @@ const FileAnalyzer = require('../services/file-analyzer');
 const vscode = require('vscode');
 
 class WidgetInfoHandler {
+
     static async getWidgetDescription(filePath, line, column) {
         const params = { file: filePath, offset: this.getOffset(line, column) };
         const request = { id: '1', method: 'flutter.getWidgetDescription', params };
@@ -23,7 +24,8 @@ class WidgetInfoHandler {
             }
         } catch (error) {
             console.error('Error getting widget description: ', error);
-            switch (error) {
+
+            switch (error?.message) {
                 case 'Analysis server not started':
                     await this.analyzerServerNotStartedHandler();
                     return this.reGetWidgetDescription(request);
@@ -121,29 +123,6 @@ class WidgetInfoHandler {
         return widgetInfo;
     }
 
-
-    /* static async getWidgetDescription(filePath, line, column) {
-        const params = { file: filePath, offset: this.getOffset(line, column) };
-        const request = { id: '1', method: 'flutter.getWidgetDescription', params };
-       
-        try { 
-            const widgetInfo = await DartAnalyzer.getInstance().analysisServer.sendRequest(request);
-            return widgetInfo.result || null;
-        } catch (error) { 
-            switch (error) {
-                case 'Analysis server not started': 
-                    await this.analyzerServerNotStartedHandler();
-                    this.reGetWidgetDescription(request);
-                    break; 
-                case "FILE_NOT_ANALYZED": 
-                    await this.fileNotAnalyzedHandler(filePath);
-                    this.reGetWidgetDescription(request);
-                    break; 
-                default:
-                    break;
-            }
-        }
-    }  */
     static async reGetWidgetDescription(request) {
         try {
             const dartAnalyzer = DartAnalyzer.getInstance().analysisServer;
@@ -163,18 +142,24 @@ class WidgetInfoHandler {
             .slice(0, line)
             .reduce((offset, lineContent) => offset + lineContent.length + 1, 0) + column;
     }
+
     static async analyzerServerNotStartedHandler() {
         try {
-            const dartAnalyzer = DartAnalyzer.getInstance();
-            dartAnalyzer.start();
+            if (!DartAnalyzer.serverMustStop) {
+                const dartAnalyzer = DartAnalyzer.getInstance();
+                dartAnalyzer.start();
+            }
         } catch (error) {
             console.error('Cant start server: ', error);
         }
     }
+
     static async fileNotAnalyzedHandler(filePath) {
         try {
-            const fileAnalyzer = FileAnalyzer.getInstance();
-            await fileAnalyzer.analyzeFile(filePath);
+            if (!DartAnalyzer.serverMustStop) {
+                const fileAnalyzer = FileAnalyzer.getInstance();
+                await fileAnalyzer.analyzeFile(filePath);
+            }
         } catch (error) {
             console.error('Cant start server: ', error);
         }

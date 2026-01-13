@@ -23,7 +23,7 @@ class DartAnalysisServer {
         return !!this.serverProcess;
     }
 
-    sendRequest(request) {
+    async sendRequest(request) {
         return new Promise((resolve, reject) => {
             if (!this.serverProcess) {
                 reject(new Error('Analysis server not started'));

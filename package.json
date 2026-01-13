@@ -127,6 +127,14 @@
         "title": "List Outdated Dependencies"
       },
       {
+        "command": "analysisserver.start",
+        "title": "Start Analysis Server"
+      },
+      {
+        "command": "analysisserver.stop",
+        "title": "Stop Analysis Server"
+      },
+      {
         "command": "flutter.per.abi",
         "title": "Flutter build per abi"
       },
@@ -157,6 +165,26 @@
         {
           "when": "view == flutter-dependencies-explorer",
           "command": "dependencies.add",
+          "group": "navigation"
+        },
+        {
+          "when": "view == flutter-permissions-activitybar && !server:running",
+          "command": "analysisserver.start",
+          "group": "navigation"
+        },
+        {
+          "when": "view == flutter-permissions-explorer && !server:running",
+          "command": "analysisserver.start",
+          "group": "navigation"
+        },
+        {
+          "when": "view == flutter-permissions-activitybar && server:running",
+          "command": "analysisserver.stop",
+          "group": "navigation"
+        },
+        {
+          "when": "view == flutter-permissions-explorer && server:running",
+          "command": "analysisserver.stop",
           "group": "navigation"
         }
       ]

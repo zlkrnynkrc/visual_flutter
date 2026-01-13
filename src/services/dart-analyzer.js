@@ -3,6 +3,7 @@ const SdkFinder = require('./dart-sdk-finder');
 const DartAnalysisServer = require('./dart-analysis-server');
 const FileAnalyzer = require('./file-analyzer');
 const { libPath } = require("../utils/path-provider");
+const { assert } = require('console');
 
 class DartAnalyzer {
     
@@ -13,6 +14,8 @@ class DartAnalyzer {
         this.analysisServer = new DartAnalysisServer();
         this.fileAnalyzer = new FileAnalyzer(this.analysisServer, this.analyzedProjectFiles);
     }
+
+    static serverMustStop = false;
 
     static getInstance() {
         if (!this.instance) {
@@ -38,7 +41,7 @@ class DartAnalyzer {
             this.sdkFinder.dartSdkExecutable,
             analyzerSnapshotPath
         );
-        vscode.window.showInformationMessage('anaylzer server started\n')
+        vscode.window.showInformationMessage('analyzer server started\n')
 
         if (!this.analysisServer) {
             vscode.window.showErrorMessage('cant start server');
@@ -61,7 +64,8 @@ class DartAnalyzer {
             method: 'analysis.updateContent',
             params,
         };
-        await this.analysisServer.sendRequest(request);
+        const response = await this.analysisServer.sendRequest(request);
+        assert(response);
     }
 
     async analyzeProjectFiles(files) {
@@ -72,7 +76,45 @@ class DartAnalyzer {
         await this.fileAnalyzer.analyzeFile(filePath);
     }
 
+    switchStartStopServerTag() {
+        vscode.commands.executeCommand(
+            'setContext', 
+            'server:running',
+            this.analysisServer.isRunning()
+        );
+    }
+
+    registerSwitchCommands(context) {
+        const start = vscode.commands.registerCommand(
+            'analysisserver.start', async () => {
+                DartAnalyzer.serverMustStop = false;
+                await this.start();
+                this.switchStartStopServerTag();
+                setTimeout(() =>
+                    vscode.window.showInformationMessage(
+                        'In order to use Widget Properties ' +
+                        'please reopen any docs you want to edit.'
+                    ),
+                    1000
+                );
+            }
+        )
+        const stop = vscode.commands.registerCommand(
+            'analysisserver.stop', async () => {
+                DartAnalyzer.serverMustStop = true;
+                this.stop();
+                this.switchStartStopServerTag();
+            }
+        );
+        context.subscriptions.push(
+            start,
+            stop
+        );
+        this.switchStartStopServerTag();
+    }
+
     stop() {
+        vscode.window.showInformationMessage('analyzer server will stop\n')
         this.analysisServer.stop();
     }
 }

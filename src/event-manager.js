@@ -5,6 +5,7 @@ const DartAnalyzer = require('./services/dart-analyzer');
 const vscode = require('vscode');
 
 class EventManager {
+    
     constructor(context, dartAnalysisServer, providersManager) {
         this.context = context;
         this.dartAnalysisServer = dartAnalysisServer;

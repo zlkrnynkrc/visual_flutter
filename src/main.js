@@ -13,13 +13,17 @@ async function activate(context) {
         + vscode.workspace.name + ")"
     );
     await findPaths();
+
     const commandManager = new CommandManager(context);
     commandManager.registerCommands();
 
     const providersManager = new ProvidersManager(context);
     providersManager.registerProviders();
+
     await DartAnalyzer.getInstance().start();
+    DartAnalyzer.getInstance().registerSwitchCommands(context);
     dartAnalysisServer = DartAnalyzer.getInstance().analysisServer;
+
     const eventManager = new EventManager(context, dartAnalysisServer, providersManager);
     eventManager.registerEventListeners();
 }
