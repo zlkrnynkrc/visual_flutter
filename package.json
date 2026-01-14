@@ -194,7 +194,7 @@
     "lint": "eslint .",
     "pretest": "npm run lint",
     "test": "vscode-test",
-    "build": "echo 'No build step required for JavaScript'",
+    "build": "node ./esbuild.config.js",
     "publish": "vsce publish",
     "package": "vsce package --no-yarn"
   },
@@ -204,6 +204,7 @@
     "@types/vscode": "^1.91.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
+    "esbuild": "^0.27.2",
     "eslint": "^9.39.2",
     "patch-package": "^8.0.1",
     "postinstall-postinstall": "^2.1.0"
