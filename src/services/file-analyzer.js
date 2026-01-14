@@ -48,6 +48,12 @@ class FileAnalyzer {
         if (projectPath.startsWith(libPath())) { return true; }
     }
 
+    rejectFile(filePath) {
+        if (this.analyzedProjectFiles.has(filePath)) {
+            this.analyzedProjectFiles.delete(filePath);
+        }
+    }
+
     async analyzeFile(filePath) {
         try {
             if (this.analyzedProjectFiles.has(filePath)) { return; }

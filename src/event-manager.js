@@ -23,9 +23,20 @@ class EventManager {
         const disposable = vscode.window.onDidChangeActiveTextEditor(async (editor) => {
             if (editor) {
                 const dartAnalyzer = DartAnalyzer.getInstance();
-                const isFileAnalyzed = await dartAnalyzer.analyzeProjectFiles(editor.document.uri.fsPath);
-                if (!isFileAnalyzed) {
-                    vscode.window.showInformationMessage(`File is not analyzable: ${editor.document.uri.fsPath}`);
+
+                if (DartAnalyzer.serverMustStop) {
+                    dartAnalyzer.fileAnalyzer.rejectFile(editor.document.uri.fsPath);
+                    return;
+                }
+                else if (dartAnalyzer.analysisServer.isRunning()) {
+                    const isFileAnalyzed = await dartAnalyzer.analyzeProjectFiles(
+                        editor.document.uri.fsPath
+                    );
+                    if (!isFileAnalyzed) {
+                        vscode.window.showInformationMessage(
+                            `File is not analyzable: ${editor.document.uri.fsPath}`
+                        );
+                    }
                 }
             }
         });
@@ -36,8 +47,13 @@ class EventManager {
         const disposable = vscode.window.onDidChangeTextEditorSelection(async (event) => {
             const editor = event.textEditor;
             const position = editor.selection.active;
-            const widgetInfo = await WidgetInfoHandler.getWidgetDescription(editor.document.uri.fsPath, position.line, position.character);
-            WidgetFieldProvider.getInstance(this.context.extensionUri).updateWebview(widgetInfo);
+            const widgetInfo = await WidgetInfoHandler.getWidgetDescription(
+                editor.document.uri.fsPath,
+                position.line,
+                position.character
+            );
+            WidgetFieldProvider.getInstance(this.context.extensionUri)
+                               .updateWebview(widgetInfo);
         });
         this.context.subscriptions.push(disposable);
     }

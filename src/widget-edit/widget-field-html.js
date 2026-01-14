@@ -30,7 +30,7 @@ function getHtml() {
 
 function getWebviewContent(widgetInfo, webview, extensionUri) {
     if (!widgetInfo.result) {
-        vscode.window.showWarningMessage('Cannot read widget properties. Widget: ' + widgetInfo);
+        vscode.window.showWarningMessage('Cannot read widget properties.');
         return
     }
     const nonce = getNonce();

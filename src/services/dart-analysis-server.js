@@ -19,6 +19,13 @@ class DartAnalysisServer {
         this._listen();
     }
 
+    stop() {
+        if (this.serverProcess) {
+            this.serverProcess.kill();
+            this.serverProcess = null;
+        }
+    }
+
     isRunning() {
         return !!this.serverProcess;
     }
@@ -26,7 +33,7 @@ class DartAnalysisServer {
     async sendRequest(request) {
         return new Promise((resolve, reject) => {
             if (!this.serverProcess) {
-                reject(new Error('Analysis server not started'));
+                reject(new Error(serverNotStartedMessage));
                 return;
             }
 
@@ -63,13 +70,14 @@ class DartAnalysisServer {
             console.error(`Server process exited with code ${code}`);
         });
     }
-
-    stop() {
-        if (this.serverProcess) {
-            this.serverProcess.kill();
-            this.serverProcess = null;
-        }
-    }
 }
 
-module.exports = DartAnalysisServer;
+const serverNotStartedMessage = 'Analysis server not started';
+
+const fileNotAnalyzed = 'FILE_NOT_ANALYZED';
+
+module.exports = {
+    DartAnalysisServer,
+    serverNotStartedMessage,
+    fileNotAnalyzed
+};

@@ -1,6 +1,10 @@
 const DartAnalyzer = require('../services/dart-analyzer');
 const FileAnalyzer = require('../services/file-analyzer');
 const vscode = require('vscode');
+const {
+    serverNotStartedMessage,
+    fileNotAnalyzed
+} = require('../services/dart-analysis-server');
 
 class WidgetInfoHandler {
 
@@ -17,7 +21,8 @@ class WidgetInfoHandler {
                 const widgetDetail = await this.getHoverInfo(editor.document, editor.selection.active);
 
                 if (widgetDetail) {
-                    const mergedwidgetInfo= this.mergeProperties(widgetInfo, widgetDetail);
+                    const mergedwidgetInfo = this.mergeProperties(widgetInfo, widgetDetail);
+                    
                     return mergedwidgetInfo;
                 }
                 return widgetInfo.result || null;
@@ -26,10 +31,10 @@ class WidgetInfoHandler {
             console.error('Error getting widget description: ', error);
 
             switch (error?.message) {
-                case 'Analysis server not started':
+                case serverNotStartedMessage:
                     await this.analyzerServerNotStartedHandler();
                     return this.reGetWidgetDescription(request);
-                case 'FILE_NOT_ANALYZED':
+                case fileNotAnalyzed:
                     await this.fileNotAnalyzedHandler(filePath);
                     return this.reGetWidgetDescription(request);
                 default:
@@ -156,10 +161,10 @@ class WidgetInfoHandler {
 
     static async fileNotAnalyzedHandler(filePath) {
         try {
-            if (!DartAnalyzer.serverMustStop) {
-                const fileAnalyzer = FileAnalyzer.getInstance();
-                await fileAnalyzer.analyzeFile(filePath);
-            }
+            const fileAnalyzer = FileAnalyzer.getInstance();
+            DartAnalyzer.serverMustStop ?
+                fileAnalyzer.rejectFile(filePath)
+            :   await fileAnalyzer.analyzeFile(filePath);
         } catch (error) {
             console.error('Cant start server: ', error);
         }

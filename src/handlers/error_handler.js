@@ -1,7 +1,10 @@
 const DartAnalyzer = require('../services/dart-analyzer');
 const FileAnalyzer = require('../services/file-analyzer');
+const { serverNotStartedMessage } = require(
+    '../services/dart-analysis-server'
+);
 
-export class ErrorHandler {
+class ErrorHandler {
 
     constructor(error) {
         this._error=error;
@@ -10,7 +13,7 @@ export class ErrorHandler {
 
     async handleErrors(error) {
         switch (error?.message) {
-            case 'Analysis server not started': 
+            case serverNotStartedMessage: 
                 await this.analyzerServerNotStartedHandler();
                 break;
             default:
@@ -31,12 +34,14 @@ export class ErrorHandler {
 
     async fileNotAnalyzedHandler(filePath) {
         try {
-            if (!DartAnalyzer.serverMustStop) {
-                const fileAnalyzer = FileAnalyzer.getInstance();
-                await fileAnalyzer.analyzeFile(filePath);
-            }
+            const fileAnalyzer = FileAnalyzer.getInstance();
+            DartAnalyzer.serverMustStop ?
+                fileAnalyzer.rejectFile(filePath)
+            :   await fileAnalyzer.analyzeFile(filePath);
         } catch (error) {
             console.error('Cant start server: ', error);
         }
     }
 }
+
+module.exports = ErrorHandler;

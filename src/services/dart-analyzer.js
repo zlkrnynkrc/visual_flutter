@@ -1,7 +1,7 @@
 const vscode = require('vscode');
 const SdkFinder = require('./dart-sdk-finder');
-const DartAnalysisServer = require('./dart-analysis-server');
 const FileAnalyzer = require('./file-analyzer');
+const { DartAnalysisServer } = require('./dart-analysis-server');
 const { libPath } = require("../utils/path-provider");
 const { assert } = require('console');
 
@@ -91,7 +91,7 @@ class DartAnalyzer {
                 await this.start();
                 this.switchStartStopServerTag();
                 setTimeout(() =>
-                    vscode.window.showInformationMessage(
+                    vscode.window.showWarningMessage(
                         'In order to use Widget Properties ' +
                         'please reopen any docs you want to edit.'
                     ),
