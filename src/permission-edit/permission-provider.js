@@ -95,6 +95,8 @@ class PermissionProvider {
                         position: relative;
                         width: 100%;
                         margin-bottom: 20px;
+                        padding-right: 15px;
+                        box-sizing: border-box;
                     }
                     .search-input {
                         width: 100%;
@@ -146,6 +148,9 @@ class PermissionProvider {
                         padding: 5px;
                         background: var(--vscode-list-inactiveSelectionBackground);
                     }
+                    h2 {
+						margin-top: 0;
+					}
                 </style>
             </head>
             <body>
