@@ -92,8 +92,8 @@ class DartAnalyzer {
                 this.switchStartStopServerTag();
                 setTimeout(() =>
                     vscode.window.showWarningMessage(
-                        'In order to use Widget Properties ' +
-                        'please reopen any docs you want to edit.'
+                        'To use Widget Properties ' +
+                        'please reopen any doc you want to edit.'
                     ),
                     1000
                 );
