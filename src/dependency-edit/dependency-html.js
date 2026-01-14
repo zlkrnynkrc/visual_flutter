@@ -121,7 +121,7 @@ class DependencyWebViewHtml {
                     align-items: center;
                     gap: 10px;
                     /* Space between buttons */
-                    margin: 20px 0;
+                    margin: 10px;
                 }
                 .button-row button {
                     padding: 5px 10px;
