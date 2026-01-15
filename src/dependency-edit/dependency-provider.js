@@ -1,14 +1,6 @@
 const vscode = require('vscode');
-const DependencyWebViewHtml = require('./dependency-html');
+const { DependencyWebViewHtml, commands } = require('./dependency-html');
 const { setOnDidChangeVisibility } = require('../utils/webview-validator');
-
-const commands = {
-    refresh: 'refresh',
-    add: 'addDependency',
-    remove: 'removeDependency',
-    update: 'updateDependency',
-    outdated: 'outdated',
-};
 
 class DependencyProvider {
 

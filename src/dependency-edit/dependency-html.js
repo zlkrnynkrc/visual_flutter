@@ -1,6 +1,7 @@
 const { getNonce } = require( '../utils/webview-validator');
 
 class DependencyWebViewHtml {
+
     static generate(dependencies) {
         const nonce = getNonce();
         const rows = dependencies
@@ -188,7 +189,7 @@ class DependencyWebViewHtml {
                 const vscode = acquireVsCodeApi();
   
                 function refresh() {
-                    vscode.postMessage({ command: 'refresh' });
+                    vscode.postMessage({ command: '${commands.refresh}' });
                 }
   
                 // Right-click menu logic
@@ -222,19 +223,19 @@ class DependencyWebViewHtml {
                 });
   
                 function handleAdd() {
-                    vscode.postMessage({ command: 'addDependency', dependency: selectedDependency });
+                    vscode.postMessage({ command: '${commands.add}', dependency: selectedDependency });
                 }
   
                 function handleRemove() {
-                    vscode.postMessage({ command: 'removeDependency', dependency: selectedDependency });
+                    vscode.postMessage({ command: '${commands.remove}', dependency: selectedDependency });
                 }
   
                 function handleUpdate() {
-                    vscode.postMessage({ command: 'updateDependency', dependency: selectedDependency });
+                    vscode.postMessage({ command: '${commands.update}', dependency: selectedDependency });
                 }
   
                 function handleListOutdated() {
-                    vscode.postMessage({ command: 'listOutdated' });
+                    vscode.postMessage({ command: '${commands.outdated}' });
                 }
             </script>
         </body>
@@ -243,4 +244,12 @@ class DependencyWebViewHtml {
     }
 }
 
-module.exports = DependencyWebViewHtml;
+const commands = {
+    refresh: 'refresh',
+    add: 'addDependency',
+    remove: 'removeDependency',
+    update: 'updateDependency',
+    outdated: 'listOutdated',
+};
+
+module.exports = { DependencyWebViewHtml, commands }
