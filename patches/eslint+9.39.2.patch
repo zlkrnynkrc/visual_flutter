@@ -1,0 +1,30 @@
+diff --git a/node_modules/eslint/lib/shared/ajv.js b/node_modules/eslint/lib/shared/ajv.js
+index 5c5c41b..8338aa8 100644
+--- a/node_modules/eslint/lib/shared/ajv.js
++++ b/node_modules/eslint/lib/shared/ajv.js
+@@ -8,8 +8,7 @@
+ // Requirements
+ //------------------------------------------------------------------------------
+ 
+-const Ajv = require("ajv"),
+-	metaSchema = require("ajv/lib/refs/json-schema-draft-04.json");
++const Ajv = require("ajv");
+ 
+ //------------------------------------------------------------------------------
+ // Public Interface
+@@ -20,15 +19,9 @@ module.exports = (additionalOptions = {}) => {
+ 		meta: false,
+ 		useDefaults: true,
+ 		validateSchema: false,
+-		missingRefs: "ignore",
+ 		verbose: true,
+-		schemaId: "auto",
+ 		...additionalOptions,
+ 	});
+ 
+-	ajv.addMetaSchema(metaSchema);
+-	// eslint-disable-next-line no-underscore-dangle -- Ajv's API
+-	ajv._opts.defaultMeta = metaSchema.id;
+-
+ 	return ajv;
+ };
