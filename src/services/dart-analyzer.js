@@ -1,15 +1,14 @@
 const vscode = require('vscode');
 const SdkFinder = require('./dart-sdk-finder');
 const FileAnalyzer = require('./file-analyzer');
+const LogService = require('./log-service');
 const { DartAnalysisServer } = require('./dart-analysis-server');
 const { libPath } = require("../utils/path-provider");
-const { assert } = require('console');
 
 class DartAnalyzer {
     
     constructor() {
         this.analyzedProjectFiles = new Set();
-        this.config = vscode.workspace.getConfiguration('widgetedit');
         this.sdkFinder = new SdkFinder();
         this.analysisServer = new DartAnalysisServer();
         this.fileAnalyzer = new FileAnalyzer(this.analysisServer, this.analyzedProjectFiles);
@@ -65,7 +64,7 @@ class DartAnalyzer {
             params,
         };
         const response = await this.analysisServer.sendRequest(request);
-        assert(response);
+        LogService.assert(response);
     }
 
     async analyzeProjectFiles(files) {
@@ -87,24 +86,19 @@ class DartAnalyzer {
     registerSwitchCommands(context) {
         const start = vscode.commands.registerCommand(
             'analysisserver.start', async () => {
-                DartAnalyzer.serverMustStop = false;
-                await this.start();
-                this.switchStartStopServerTag();
+                await this._server(must.Start);
                 setTimeout(() =>
                     vscode.window.showWarningMessage(
                         'To use Widget Properties ' +
-                        'please reopen any doc you want to edit.'
+                        'you may reopen active docs.'
                     ),
                     1000
                 );
             }
         )
         const stop = vscode.commands.registerCommand(
-            'analysisserver.stop', async () => {
-                DartAnalyzer.serverMustStop = true;
-                this.stop();
-                this.switchStartStopServerTag();
-            }
+            'analysisserver.stop',
+            () => this._server(must.Stop)
         );
         context.subscriptions.push(
             start,
@@ -117,6 +111,28 @@ class DartAnalyzer {
         vscode.window.showInformationMessage('analyzer server will stop\n')
         this.analysisServer.stop();
     }
+
+    async _server(_must) {
+        switch (_must) {
+            case must.Stop:
+                this.stop();
+                DartAnalyzer.serverMustStop = true;
+                LogService.setCanLog(false);
+                break;
+            case must.Start:
+            default:
+                DartAnalyzer.serverMustStop = false;
+                LogService.setCanLog(true);
+                await this.start();
+                break;
+        }
+        this.switchStartStopServerTag();
+    }
 }
+
+const must = Object.freeze({
+  Start: 'KOS',
+  Stop:  'DUR'
+});
 
 module.exports = DartAnalyzer;

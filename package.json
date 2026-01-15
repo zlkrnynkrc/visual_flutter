@@ -36,6 +36,11 @@
       "type": "workspace",
       "title": "Flutter widgetlist settings",
       "properties": {
+        "visual_flutter.autolog": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable logging all the time even server is stopped"
+        },
         "visual_flutter.autosave": {
           "type": "boolean",
           "default": true,

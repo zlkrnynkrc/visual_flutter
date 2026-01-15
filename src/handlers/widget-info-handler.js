@@ -1,5 +1,6 @@
 const DartAnalyzer = require('../services/dart-analyzer');
 const FileAnalyzer = require('../services/file-analyzer');
+const LogService = require('../services/log-service');
 const vscode = require('vscode');
 const {
     serverNotStartedMessage,
@@ -28,7 +29,7 @@ class WidgetInfoHandler {
                 return widgetInfo.result || null;
             }
         } catch (error) {
-            console.error('Error getting widget description: ', error);
+            LogService.error('Error getting widget description: ', error);
 
             switch (error?.message) {
                 case serverNotStartedMessage:
@@ -134,7 +135,7 @@ class WidgetInfoHandler {
             const widgetInfo = await dartAnalyzer.sendRequest(request);
             return widgetInfo.result || null;
         } catch (error) {
-            console.error('Error fetching widget description: ', error);
+            LogService.error('Error fetching widget description: ', error);
         }
     }
 
@@ -155,7 +156,7 @@ class WidgetInfoHandler {
                 dartAnalyzer.start();
             }
         } catch (error) {
-            console.error('Cant start server: ', error);
+            LogService.error('Cant start server: ', error);
         }
     }
 
@@ -166,7 +167,7 @@ class WidgetInfoHandler {
                 fileAnalyzer.rejectFile(filePath)
             :   await fileAnalyzer.analyzeFile(filePath);
         } catch (error) {
-            console.error('Cant start server: ', error);
+            LogService.error('Cant start server: ', error);
         }
     }
 }

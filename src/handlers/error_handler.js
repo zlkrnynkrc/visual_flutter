@@ -1,5 +1,6 @@
 const DartAnalyzer = require('../services/dart-analyzer');
 const FileAnalyzer = require('../services/file-analyzer');
+const LogService = require('../services/log-service');
 const { serverNotStartedMessage } = require(
     '../services/dart-analysis-server'
 );
@@ -28,7 +29,7 @@ class ErrorHandler {
                 await dartAnalyzer.start();
             }
         } catch (error) {
-            console.error('Cant start server: ', error);
+            LogService.error('Cant start server: ', error);
         }
     }
 
@@ -39,7 +40,7 @@ class ErrorHandler {
                 fileAnalyzer.rejectFile(filePath)
             :   await fileAnalyzer.analyzeFile(filePath);
         } catch (error) {
-            console.error('Cant start server: ', error);
+            LogService.error('Cant start server: ', error);
         }
     }
 }

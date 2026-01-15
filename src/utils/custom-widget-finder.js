@@ -1,6 +1,6 @@
 const vscode = require('vscode');
+const LogService = require('../services/log-service');
 const { libPath } = require("../utils/path-provider");
-
 
 function extractConstructorParams(content, widgetName) {
     // Enhanced regex to capture more complex parameter declarations
@@ -125,7 +125,7 @@ async function findCustomWidgetFiles() {
                 });
             }
         } catch (error) {
-            console.error(`Error processing file ${fileUri.fsPath}:`, error);
+            LogService.error(`Error processing file ${fileUri.fsPath}:`, error);
         }
     }
 

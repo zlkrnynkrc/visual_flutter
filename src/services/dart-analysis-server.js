@@ -1,3 +1,4 @@
+const LogService = require('../services/log-service');
 const { spawn } = require('child_process');
 
 class DartAnalysisServer {
@@ -63,11 +64,11 @@ class DartAnalysisServer {
         });
 
         this.serverProcess.stderr.on('data', (data) => {
-            console.error('Error: ' + data.toString());
+            LogService.error('Error: ' + data.toString());
         });
 
         this.serverProcess.on('close', (code) => {
-            console.error(`Server process exited with code ${code}`);
+            LogService.error(`Server process exited with code ${code}`);
         });
     }
 }

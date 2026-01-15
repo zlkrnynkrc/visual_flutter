@@ -1,6 +1,8 @@
 const vscode = require('vscode');
 const DartAnalyzer = require('../services/dart-analyzer');
+const LogService = require('../services/log-service');
 const { getHtml, getWebviewContent } = require('./widget-field-html');
+
 const commands = {
     updateProperty: 'updateProperty',
     colorProperty: 'colorProperty',
@@ -76,7 +78,7 @@ class WidgetFieldProvider {
         const widgetRange = await this.getWidgetConstructorRange();
 
         if (!widgetRange) {
-            console.error('Failed to determine widget range');
+            LogService.error('Failed to determine widget range');
             return;
         }
 

@@ -1,3 +1,4 @@
+const LogService = require('../services/log-service');
 const fetch = require('node-fetch');
 
 class DependencyService {
@@ -8,7 +9,7 @@ class DependencyService {
             
             return data.latest?.version || 'Unknown';
         } catch (e) {
-            console.log(`Fetching latest version of ${dependency} error: ${e}`)
+            LogService.log(`Fetching latest version of ${dependency} error: ${e}`)
             return 'Unknown';
         }
     }

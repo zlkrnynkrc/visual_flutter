@@ -1,6 +1,7 @@
 const path = require('path');
 const exec = require('child_process').exec;
 const vscode = require('vscode');
+const LogService = require('../services/log-service');
 const { fileExists } = require('../utils/path-provider');
 
 const isWin = process.platform === 'win32';
@@ -128,7 +129,7 @@ class SdkFinder {
                 this.aSSnapshot ??= await this.normalizeSnapshotsPath();
             }
         } catch (error) {
-            console.error('Error while running `which`/`where` commands: ', error);
+            LogService.error('Error while running `which`/`where` commands: ', error);
         }
     }
 
