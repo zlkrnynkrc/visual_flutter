@@ -2,7 +2,10 @@ import globals from "globals";
 
 export default [
     {
-        ignores: ["media/"]
+        ignores: [
+            "media/",
+            "dist/"
+        ]
     },
     {
         files: ["**/*.js"],
