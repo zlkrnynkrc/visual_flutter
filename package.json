@@ -30,7 +30,7 @@
     "onLanguage:dart",
     "workspaceContains:**/pubspec.yaml"
   ],
-  "main": "./src/main.js",
+  "main": "./dist/extension.js",
   "contributes": {
     "configuration": {
       "type": "workspace",
