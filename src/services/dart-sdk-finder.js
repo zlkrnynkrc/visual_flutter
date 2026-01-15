@@ -40,7 +40,9 @@ class SdkFinder {
     }
 
     async detectSdkFromVscode() {
-        const dartSdkFromVscode = vscode.workspace.getConfiguration().get('dart.sdkPath');
+        const dartSdkFromVscode = vscode.workspace.getConfiguration().get('dart.sdkPath')
+            ?? vscode.workspace.getConfiguration('visual_flutter').get('dartpath');
+
         const flutterSdkFromVscode = vscode.workspace.getConfiguration().get('flutter.sdkPath');
 
         if (dartSdkFromVscode) {
@@ -67,7 +69,13 @@ class SdkFinder {
     }
 
     async normalizeSnapshotsPath() {
-        if (!this.dartFromFlutterSDK) { return null; }
+        if (!this.dartFromFlutterSDK) {
+            const path =
+                vscode.workspace.getConfiguration('visual_flutter').get('dartsnapshot')
+            ?? '_';
+            
+            return await fileExists(path) ? path : null; 
+        }
 
         const snapPath = path.join(this.dartFromFlutterSDK,
             'snapshots',
@@ -78,7 +86,7 @@ class SdkFinder {
             return snapPath;
         }
 
-        return path.join(this.dartSdk, 'snapshots', executableNames.analysisServerSnapshot);;
+        return path.join(this.dartSdk, 'snapshots', executableNames.analysisServerSnapshot);
     }
 
     async normalizeDartSdkPath(sdkPath) {

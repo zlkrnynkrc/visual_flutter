@@ -23,8 +23,8 @@ class WidgetFieldProvider {
         if (!this.instance) {
             this.instance = new WidgetFieldProvider(extensionUri);
         }
-        const config = vscode.workspace.getConfiguration('widgetedit');
-        this.instance.isAutosave = config.get('autosave') ?? true;
+        const config = vscode.workspace.getConfiguration('visual_flutter');
+        this.instance.isAutosave = config.get('autosave', true);
 
         return this.instance;
     }
