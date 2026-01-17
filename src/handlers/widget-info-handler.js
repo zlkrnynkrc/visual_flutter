@@ -15,7 +15,8 @@ class WidgetInfoHandler {
 
         try {
             const dartAnalyzer = DartAnalyzer.getInstance().analysisServer;
-            const widgetInfo = await dartAnalyzer.sendRequest(request);
+            const breakAnalyze = DartAnalyzer.serverMustStop;
+            const widgetInfo = breakAnalyze ? {} : await dartAnalyzer.sendRequest(request);
 
             if (widgetInfo.id === '1' && widgetInfo.result) {
                 const editor = vscode.window.activeTextEditor;
