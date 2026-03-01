@@ -1,6 +1,8 @@
 const vscode = require('vscode');
+const DartAnalyzer = require('../services/dart-analyzer');
+const { LogService, awareUser } = require('../services/log-service');
 const { DOMParser } = require('@xmldom/xmldom');
-const { manifestPath, fileExists } = require("../utils/path-provider");
+const { getManifestPath: manifestPath, fileExists } = require("../utils/path-provider");
 
 class ManifestService {
     
@@ -70,8 +72,18 @@ class ManifestService {
         const existingManifest = path.trim() !== '' && await fileExists(path);
 
         if (!existingManifest) {
-            if (vscode.workspace.workspaceFolders?.length > 0) {
-                vscode.window.showErrorMessage('AndroidManifest.xml not found.');
+            if (DartAnalyzer.getInstance().analysisServer.isRunning()) {
+                const notFoundInfo = 'AndroidManifest.xml not found.';
+                
+                if (vscode.workspace.workspaceFolders?.length > 0) {
+                    vscode.window.showErrorMessage(notFoundInfo);
+                }
+                LogService.error(notFoundInfo,
+                    awareUser, () =>
+                    vscode.commands.executeCommand(
+                        DartAnalyzer.commands.stop
+                    )
+                );
             }
             return false;
         }

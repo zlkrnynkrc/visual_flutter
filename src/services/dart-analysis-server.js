@@ -1,4 +1,4 @@
-const LogService = require('../services/log-service');
+const { LogService, awareUser } = require('../services/log-service');
 const { spawn } = require('child_process');
 
 class DartAnalysisServer {
@@ -52,7 +52,7 @@ class DartAnalysisServer {
                 const line = buffer.slice(0, idx).trim();
                 buffer = buffer.slice(idx + 1);
 
-                if (!line) continue;
+                if (!line) { continue; }
 
                 const response = JSON.parse(line);
                 const handler = this.responseHandlers[response.id];
@@ -64,7 +64,11 @@ class DartAnalysisServer {
         });
 
         this.serverProcess.stderr.on('data', (data) => {
-            LogService.error('Error: ' + data.toString());
+            LogService.error(
+                'Error: ' + data.toString(),
+                awareUser,
+                () => this.stop()
+            );
         });
 
         this.serverProcess.on('close', (code) => {

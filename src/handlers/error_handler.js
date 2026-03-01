@@ -1,6 +1,6 @@
 const DartAnalyzer = require('../services/dart-analyzer');
 const FileAnalyzer = require('../services/file-analyzer');
-const LogService = require('../services/log-service');
+const { LogService } = require('../services/log-service');
 const { serverNotStartedMessage } = require(
     '../services/dart-analysis-server'
 );
@@ -9,7 +9,7 @@ class ErrorHandler {
 
     constructor(error) {
         this._error=error;
-        this.handleErrors(this._error)
+        this.handleErrors(this._error);
     }
 
     async handleErrors(error) {

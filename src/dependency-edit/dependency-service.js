@@ -1,15 +1,17 @@
-const LogService = require('../services/log-service');
-const fetch = require('node-fetch');
+const { LogService } = require('../services/log-service');
 
 class DependencyService {
     async fetchLatestVersion(dependency) {
         try {
+            const { default: fetch } = await import('node-fetch');
             const response = await fetch(`https://pub.dev/api/packages/${dependency}`);
+            
+            /** @type {any} */
             const data = await response.json();
             
             return data.latest?.version || 'Unknown';
         } catch (e) {
-            LogService.log(`Fetching latest version of ${dependency} error: ${e}`)
+            LogService.log(`Fetching latest version of ${dependency} error: ${e}`);
             return 'Unknown';
         }
     }

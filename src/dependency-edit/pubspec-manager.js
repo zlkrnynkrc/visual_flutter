@@ -1,6 +1,6 @@
 const vscode = require('vscode');
 const yaml = require('yaml');
-const { pubspecPath } = require('../utils/path-provider');
+const { getPubspecPath: pubspecPath } = require('../utils/path-provider');
 
 class PubspecManager {
 
@@ -14,7 +14,7 @@ class PubspecManager {
 
             return yaml.parse(decoder.decode(uint8Content));
         } catch (error) {
-            vscode.window.showInformationMessage('Pubspec error: ' + error + '\n')
+            vscode.window.showInformationMessage('Pubspec error: ' + error + '\n');
         }
     }
 

@@ -123,4 +123,5 @@ const flutterWidgets = [
 	{ name: 'StatelessWidget', icon: 'Sl', template: "class MyWidget extends StatelessWidget {\n\tconst MyWidget({super.key});\n\t@override\n\tWidget build(BuildContext context) {\n\treturn constPlaceholder();\n}\n}" },
 	...additionalWidgets
 ];
-module.exports = { flutterWidgets, getFlutterWidgetsList }
+
+module.exports = { flutterWidgets, getFlutterWidgetsList };

@@ -1,13 +1,13 @@
 const path = require("path");
 const vscode = require("vscode");
 const WorkspaceJsonCreater = require("./workspace-json-creater");
-const { projectPath } = require("../utils/path-provider");
+const { getProjectPath } = require("../utils/path-provider");
 
 const platforms = ["Android", "iOS", "macOS", "Linux", "Web", "Windows"];
 
 class WorkspaceCommand {
     static async createAndApply() {
-        const projPath = projectPath();
+        const projPath = getProjectPath();
 
         if (!projPath) {
             vscode.window.showErrorMessage("No folder is opened in VS Code!");

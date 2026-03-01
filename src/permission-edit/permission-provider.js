@@ -1,10 +1,10 @@
 const { getPermissionsList, getPermissionsMap } = require('./permission-list');
-const { getNonce, setOnDidChangeVisibility } = require( '../utils/webview-validator');
+const { getNonce, setOnDidChangeVisibility, getCSP } = require( '../utils/webview-validator');
 
 const commands = {
     add : 'addPermission',
     remove : 'removePermission'
-}
+};
 
 class PermissionProvider {
 
@@ -12,15 +12,13 @@ class PermissionProvider {
         this.manifestService = manifestService;
         this.permissionsMap = getPermissionsMap();
         this.availablePermissions = getPermissionsList();
+        this.cspSourceDefault = undefined;
         this._view = undefined;
     }
 
     resolveWebviewView(webviewView) {
         this._view = webviewView;
-        
-        webviewView.webview.options = {
-            enableScripts: true,
-        };
+        this.cspSourceDefault = webviewView.webview.cspSource;
         this.updateWebview();
 
         webviewView.webview.onDidReceiveMessage(async (message) => {
@@ -35,11 +33,13 @@ class PermissionProvider {
                     break;
             }
         });
+        webviewView.webview.options.enableScripts = true;
+
         setOnDidChangeVisibility(webviewView, () => this.dispose());
     }
     
     dispose() {
-        this._view.dispose();
+        this._view?.dispose();
     }
 
     updateWebview() {
@@ -54,14 +54,15 @@ class PermissionProvider {
 
     getWebviewContent(permissions) {
         const nonce = getNonce();
+        const csp = getCSP(nonce, this.cspSourceDefault);
 
         if (!permissions) {
             return `<!DOCTYPE html>
             <html lang="en">
                 <head>
                     <meta charset="UTF-8">
+                    <meta http-equiv="Content-Security-Policy" content="${csp}">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <meta http-equiv="Content-Security-Policy">
                 </head>
                 <body>
                     <h3>Edit Android Permissions<h3>
@@ -80,10 +81,10 @@ class PermissionProvider {
             <html lang="en">
             <head>
                 <meta charset="UTF-8">
+                <meta http-equiv="Content-Security-Policy" content="${csp}">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <meta http-equiv="Content-Security-Policy">
                 <title>Manage Permissions</title>
-                <style>
+                <style nonce="${nonce}">
                     body {
                         color: var(--vscode-foreground);
                         background-color: var(--vscode-editor-background);

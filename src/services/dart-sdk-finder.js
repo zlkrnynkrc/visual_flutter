@@ -1,7 +1,7 @@
 const path = require('path');
 const exec = require('child_process').exec;
-const vscode = require('vscode');
-const LogService = require('../services/log-service');
+const ConfigProvider = require ('../utils/config-provider');
+const { LogService } = require('../services/log-service');
 const { fileExists } = require('../utils/path-provider');
 
 const isWin = process.platform === 'win32';
@@ -40,10 +40,11 @@ class SdkFinder {
     }
 
     async detectSdkFromVscode() {
-        const dartSdkFromVscode = vscode.workspace.getConfiguration().get('dart.sdkPath')
-            ?? vscode.workspace.getConfiguration('visual_flutter').get('dartpath');
+        const dartSdkFromVscode =
+            ConfigProvider.configBySystem('dart.sdkPath')
+         ?? ConfigProvider.configByProperty('dartPath');
 
-        const flutterSdkFromVscode = vscode.workspace.getConfiguration().get('flutter.sdkPath');
+        const flutterSdkFromVscode = ConfigProvider.configBySystem('flutter.sdkPath');
 
         if (dartSdkFromVscode) {
             this.dartSdk ??= await this.normalizeDartSdkPath(dartSdkFromVscode);
@@ -70,9 +71,7 @@ class SdkFinder {
 
     async normalizeSnapshotsPath() {
         if (!this.dartFromFlutterSDK) {
-            const path =
-                vscode.workspace.getConfiguration('visual_flutter').get('dartsnapshot')
-            ?? '_';
+            const path = ConfigProvider.configByProperty('dartSnapshot') ?? '_';
             
             return await fileExists(path) ? path : null; 
         }

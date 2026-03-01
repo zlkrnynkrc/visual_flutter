@@ -8,19 +8,18 @@ class DependencyProvider {
         this.extensionUri = extensionUri;
         this.dependencyService = dependencyService;
         this.pubspecManager = pubspecManager;
+        this.cspSourceDefault = undefined;
         this._view = undefined;
         this.dependencies = [];
     }
 
-    resolveWebviewView(webviewView) {
+    async resolveWebviewView(webviewView) {
         this._view = webviewView;
+        this.cspSourceDefault = webviewView.webview.cspSource;
+        webviewView.webview.options.localResourceRoots = [this.extensionUri];
 
-        webviewView.webview.options = {
-            enableScripts: true,
-            localResourceRoots: [this.extensionUri],
-        };
+        await this.updateWebviewContent();
 
-        this.updateWebviewContent();
         webviewView.webview.onDidReceiveMessage((message) => {
             switch (message.command) {
                 case commands.refresh:
@@ -40,6 +39,8 @@ class DependencyProvider {
                     break;
             }
         });
+        webviewView.webview.options.enableScripts = true;
+
         setOnDidChangeVisibility(webviewView, () => this.dispose());
     }
 
@@ -53,7 +54,7 @@ class DependencyProvider {
         if (!pubspec) { return; }
 
         this.dependencies = await this.dependencyService.fetchDependencies(pubspec);
-        const html = DependencyWebViewHtml.generate(this.dependencies);
+        const html = DependencyWebViewHtml.generate(this.dependencies, this.cspSourceDefault);
 
         if (this._view) {
             this._view.webview.html = html;

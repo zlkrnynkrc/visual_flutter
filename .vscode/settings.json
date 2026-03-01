@@ -1,5 +1,7 @@
 {
-    "search.exclude": {
-        "**/node_modules": false
-    }
+  "workbench.editorAssociations": {
+    "**/package.json": "default"
+  },
+  "output.filter.rules": {},
+  "git.decorations.enabled": true
 }

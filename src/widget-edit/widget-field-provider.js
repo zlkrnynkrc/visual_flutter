@@ -1,49 +1,46 @@
 const vscode = require('vscode');
 const DartAnalyzer = require('../services/dart-analyzer');
-const LogService = require('../services/log-service');
+const ConfigProvider = require ('../utils/config-provider');
+const { LogService } = require('../services/log-service');
+const { setOnDidChangeVisibility } = require ('../utils/webview-validator');
 const { getHtml, getWebviewContent } = require('./widget-field-html');
 
 const commands = {
     updateProperty: 'updateProperty',
     colorProperty: 'colorProperty',
     getSuggestions: 'getSuggestions',
-    moveToWidget: 'moveToWidget',
+    moveToWidget: 'moveToWidget'
 };
 
 class WidgetFieldProvider {
 
     constructor(extensionUri) {
         this.extensionUri = extensionUri;
-        this._view = null;
         this.isUpdatingProperty = false;
         this.isAutosave = true;
+        this.cspSourceDefault = undefined;
+        this._view = null;
     }
 
     static getInstance(extensionUri) {
         if (!this.instance) {
             this.instance = new WidgetFieldProvider(extensionUri);
         }
-        const config = vscode.workspace.getConfiguration('visual_flutter');
-        this.instance.isAutosave = config.get('autosave', true);
+        this.instance.isAutosave =
+            ConfigProvider.configByProperty('autosave', true);
 
         return this.instance;
     }
 
     resolveWebviewView(webviewView) {
         this._view = webviewView;
+        this.cspSourceDefault = webviewView.webview.cspSource;
 
-        webviewView.webview.options = {
-            enableScripts: true,
-            localResourceRoots: [this.extensionUri]
-        };
+        webviewView.webview.options.localResourceRoots = [this.extensionUri];
         webviewView.webview.html = getHtml();
-
         webviewView.webview.onDidReceiveMessage(async (message) => {
             switch (message.command) {
                 case commands.updateProperty:
-                    await this.updateWidgetProperty(message);
-                    break;
-
                 case commands.colorProperty:
                     await this.updateWidgetProperty(message);
                     break;
@@ -61,13 +58,16 @@ class WidgetFieldProvider {
                     break;
             }
         });
+        webviewView.webview.options.enableScripts = true;
+
+        setOnDidChangeVisibility(webviewView, () => this.dispose());
     }
 
     updateWebview(widgetInfo) {
         if (!widgetInfo || !this._view) { return; }
 
         this.widgetInfo = widgetInfo;
-        this._view.webview.html = getWebviewContent(widgetInfo, this._view.webview, this.extensionUri);
+        this._view.webview.html = getWebviewContent(widgetInfo, this._view.webview, this.extensionUri, this.cspSourceDefault);
     }
 
     async updateWidgetProperty(message) {
@@ -281,9 +281,7 @@ class WidgetFieldProvider {
     }
 
     dispose() {
-        if (this._view) {
-            this._view?.dispose();
-        }
+        this._view?.dispose();
     }
 
     showInvalidProjectMessage() {

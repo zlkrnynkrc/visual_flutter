@@ -1,6 +1,6 @@
 const path = require('path');
 const vscode = require('vscode');
-const { libPath, fileStat } = require("../utils/path-provider");
+const { getLibPath: libPath, fileStat } = require("../utils/path-provider");
 
 class FileAnalyzer {
 

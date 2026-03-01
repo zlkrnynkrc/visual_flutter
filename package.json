@@ -1,6 +1,6 @@
 {
   "name": "visualeditflutter",
-  "displayName": "visual_flutter",
+  "displayName": "Visual Flutter",
   "description": "Visual tools for editing widgets,dependencies,permissions for flutter",
   "publisher": "zlkrnynkrc",
   "repository": {
@@ -34,24 +34,29 @@
   "contributes": {
     "configuration": {
       "type": "workspace",
-      "title": "Flutter widgetlist settings",
+      "title": "Visual Flutter",
       "properties": {
-        "visual_flutter.autolog": {
+        "visualFlutter.autostart": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable dart analysis server autostart"
+        },
+        "visualFlutter.autolog": {
           "type": "boolean",
           "default": true,
           "description": "Enable logging all the time even server is stopped"
         },
-        "visual_flutter.autosave": {
+        "visualFlutter.autosave": {
           "type": "boolean",
           "default": true,
           "description": "Enable autosave after changes"
         },
-        "visual_flutter.dartpath": {
+        "visualFlutter.dartPath": {
           "type": "string",
           "default": "/path/to/dart-sdk",
           "description": "Set a custom path for Dart SDK"
         },
-        "visual_flutter.dartsnapshot": {
+        "visualFlutter.dartSnapshot": {
           "type": "string",
           "default": "/path/to/dart-snapshot",
           "description": "Set a custom path for Dart snapshot"
@@ -199,7 +204,7 @@
     "lint": "eslint .",
     "pretest": "npm run lint",
     "test": "vscode-test",
-    "build": "node ./esbuild.config.js",
+    "build": "node ./esbuild.config.js --watch",
     "postinstall": "patch-package",
     "publish": "vsce publish",
     "package": "vsce package --no-yarn"
@@ -208,25 +213,24 @@
     "@types/mocha": "^10.0.7",
     "@types/node": "20.x",
     "@types/vscode": "^1.91.0",
-    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-cli": "^0.0.11",
     "@vscode/test-electron": "^2.4.1",
     "esbuild": "^0.27.2",
-    "eslint": "^9.39.2",
+    "eslint": "^10.0.0",
+    "globals": "^17.3.0",
     "patch-package": "^8.0.1",
     "postinstall-postinstall": "^2.1.0"
   },
   "dependencies": {
-    "@xmldom/xmldom": "^0.9.5",
-    "ajv": "^8.17.1",
-    "node-fetch": "^2.7.0",
-    "yaml": "^2.6.0"
+    "@xmldom/xmldom": "^0.9.8",
+    "ajv": "^8.18.0",
+    "node-fetch": "^3.3.2",
+    "yaml": "^2.8.2"
   },
   "overrides": {
+    "minimatch": "^10.2.1",
     "eslint": {
-      "ajv": "8.17.1"
-    },
-    "@eslint/eslintrc": {
-      "ajv": "8.17.1"
+      "ajv": "8.18.0"
     }
   }
 }

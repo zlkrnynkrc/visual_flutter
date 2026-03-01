@@ -1,16 +1,19 @@
 const vscode = require('vscode');
 const { Kind } = require('../widget-list/kinds');
-const { getNonce } = require( '../utils/webview-validator');
+const { getNonce, getCSP } = require( '../utils/webview-validator');
 
 function getHtml() {
+    const nonce = getNonce();
+    const csp = getCSP(nonce, this.cspSourceDefault);
+    
     return `<!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
+        <meta http-equiv="Content-Security-Policy" content="${csp}">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="Content-Security-Policy">
         <title>Widget Properties</title>
-        <style>
+        <style nonce="${nonce}">
             table {
                 width: 100%;
                 border-collapse: collapse;
@@ -28,14 +31,16 @@ function getHtml() {
     </html>`;
 }
 
-function getWebviewContent(widgetInfo, webview, extensionUri) {
+function getWebviewContent(widgetInfo, webview, extensionUri, cspSource) {
     if (!widgetInfo.result) {
         vscode.window.showWarningMessage('Cannot read widget properties.');
-        return
+        return;
     }
     const nonce = getNonce();
-    const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'media', 'styles.css'));
-    const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'media', 'scripts.js'));
+    const csp = getCSP(nonce, cspSource, false);
+    const folder = 'media';
+    const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, folder, 'styles.css'));
+    const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, folder, 'scripts.js'));
     widgetInfo.result.properties.sort((a, b) => {
         const nameA = a?.name || '';
         const nameB = b?.name || '';
@@ -49,7 +54,7 @@ function getWebviewContent(widgetInfo, webview, extensionUri) {
                 return ` <tr>
                 <td>${property.name}</td>
                 <td>${generateInputField(property)}</td> 
-                </tr> `
+                </tr> `;
             }
         })
         .join('');
@@ -58,8 +63,8 @@ function getWebviewContent(widgetInfo, webview, extensionUri) {
         <html> 
         <head>
             <meta charset="UTF-8">
+            <meta http-equiv="Content-Security-Policy" content="${csp}">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <meta http-equiv="Content-Security-Policy">
             <title>Widget Properties</title>
             <link rel="stylesheet" href="${styleUri}">
         </head>
@@ -68,7 +73,7 @@ function getWebviewContent(widgetInfo, webview, extensionUri) {
             <div id="dynamicList"  class="dropdown-content"></div>
             <table>
                 ${tableRows}
-            </table> 
+            </table>
             <div class="suggestions-panel" id="suggestionsPanel">
                 <ul id="suggestionsList"></ul>
             </div>

@@ -1,7 +1,7 @@
+const vscode = require('vscode');
 const DartAnalyzer = require('../services/dart-analyzer');
 const FileAnalyzer = require('../services/file-analyzer');
-const LogService = require('../services/log-service');
-const vscode = require('vscode');
+const { LogService } = require('../services/log-service');
 const {
     serverNotStartedMessage,
     fileNotAnalyzed

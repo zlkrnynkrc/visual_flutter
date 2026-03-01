@@ -16,8 +16,9 @@ class ProvidersManager {
         this.dependencyService = new DependencyService();
         this.permissionProvider = new PermissionProvider(this.manifestService);
         this.widgetListProvider = new WidgetListProvider(this._context.extensionUri);
+        this.dependencyProvider = new DependencyProvider(this._context.extensionUri,
+            this.dependencyService, this.pubspecManager);
         this.widgetFieldProvider = WidgetFieldProvider.getInstance(this._context.extensionUri);
-        this.dependencyProvider = new DependencyProvider(this._context.extensionUri, this.dependencyService, this.pubspecManager);
     }
 
     registerProviders() {

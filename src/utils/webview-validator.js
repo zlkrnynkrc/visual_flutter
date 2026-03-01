@@ -1,4 +1,4 @@
-export function getNonce() {
+function getNonce() {
     let text = "";
     const possible =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -8,7 +8,7 @@ export function getNonce() {
     return text;
 }
 
-export function setOnDidChangeVisibility(webview, onInvisible) {
+function setOnDidChangeVisibility(webview, onInvisible) {
     let visible = false;
     let timeout = 100;
 
@@ -23,3 +23,19 @@ export function setOnDidChangeVisibility(webview, onInvisible) {
         }, timeout)
     );
 }
+
+function getCSP(nonce, cspSource, unsafeStyle = true) {
+    return [
+    `default-src 'none'`,
+    `script-src 'nonce-${nonce}' ${cspSource}`,
+    unsafeStyle ?
+        `style-src 'nonce-${nonce}' ${cspSource} 'unsafe-inline'`
+    :   `style-src ${cspSource}`,
+    `img-src ${cspSource} blob: data: https:`,
+    `frame-src ${cspSource} blob: data:`,
+    `worker-src blob: ${cspSource}`,
+    `connect-src ${cspSource} https: http://localhost:* http://127.0.0.1:*`
+  ].join("; ");
+}
+
+module.exports = { getNonce, getCSP, setOnDidChangeVisibility };

@@ -1,9 +1,10 @@
-const { getNonce } = require( '../utils/webview-validator');
+const { getNonce, getCSP } = require( '../utils/webview-validator');
 
 class DependencyWebViewHtml {
 
-    static generate(dependencies) {
+    static generate(dependencies, cspSource) {
         const nonce = getNonce();
+        const csp = getCSP(nonce, cspSource);
         const rows = dependencies
             .map((dep) => {
                 const isLatest = dep.current == '^' + dep.latest;
@@ -35,8 +36,8 @@ class DependencyWebViewHtml {
         <html lang="en">
         <head>
             <meta charset="UTF-8">
-            <meta http-equiv="Content-Security-Policy">
-            <style>
+            <meta http-equiv="Content-Security-Policy" content="${csp}">
+            <style nonce="${nonce}">
                 /* Root Styling */
                 body {
                     font-family: Arial, sans-serif;
@@ -252,4 +253,4 @@ const commands = {
     outdated: 'listOutdated',
 };
 
-module.exports = { DependencyWebViewHtml, commands }
+module.exports = { DependencyWebViewHtml, commands };

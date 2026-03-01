@@ -10,8 +10,12 @@
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}"
-			]
+				"--extensionDevelopmentPath=${workspaceFolder}",
+				"--enable-source-maps"
+			],
+			"preLaunchTask": "npm: build",
+      "sourceMaps": true,
+      "smartStep": true
 		}
 	]
 }

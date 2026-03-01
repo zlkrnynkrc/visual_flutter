@@ -1,9 +1,10 @@
 const vscode = require('vscode');
 const SdkFinder = require('./dart-sdk-finder');
 const FileAnalyzer = require('./file-analyzer');
-const LogService = require('./log-service');
+const ConfigProvider = require ('../utils/config-provider');
+const { LogService } = require('./log-service');
 const { DartAnalysisServer } = require('./dart-analysis-server');
-const { libPath } = require("../utils/path-provider");
+const { getLibPath: libPath } = require("../utils/path-provider");
 
 class DartAnalyzer {
     
@@ -16,11 +17,26 @@ class DartAnalyzer {
 
     static serverMustStop = false;
 
+    static commands = {
+        start: 'analysisserver.start',
+        stop: 'analysisserver.stop'
+    };
+
     static getInstance() {
         if (!this.instance) {
             this.instance = new DartAnalyzer();
         }
         return this.instance;
+    }
+
+    async autostart() {
+        const canRun = ConfigProvider.configByProperty('autostart', false);
+        
+        if(canRun) {
+            await this.start();
+        } else {
+            DartAnalyzer.serverMustStop = true;
+        }
     }
 
     async start() {
@@ -32,7 +48,9 @@ class DartAnalyzer {
         const analyzerSnapshotPath = this.sdkFinder.analysisServerSnapshot;
 
         if (!dartSdkPath || !analyzerSnapshotPath) {
-            vscode.window.showErrorMessage('Dart SDK or analysis server snapshot not found.');
+            vscode.window.showErrorMessage(
+                'Dart SDK or analysis server snapshot not found.'
+            );
             return;
         }
 
@@ -40,7 +58,7 @@ class DartAnalyzer {
             this.sdkFinder.dartSdkExecutable,
             analyzerSnapshotPath
         );
-        vscode.window.showInformationMessage('analyzer server started\n')
+        vscode.window.showInformationMessage('analyze server started\n');
 
         if (!this.analysisServer) {
             vscode.window.showErrorMessage('cant start server');
@@ -85,7 +103,7 @@ class DartAnalyzer {
 
     registerSwitchCommands(context) {
         const start = vscode.commands.registerCommand(
-            'analysisserver.start', async () => {
+            DartAnalyzer.commands.start, async () => {
                 await this._server(must.Start);
                 setTimeout(() =>
                     vscode.window.showWarningMessage(
@@ -95,9 +113,9 @@ class DartAnalyzer {
                     1000
                 );
             }
-        )
+        );
         const stop = vscode.commands.registerCommand(
-            'analysisserver.stop',
+            DartAnalyzer.commands.stop,
             () => this._server(must.Stop)
         );
         context.subscriptions.push(
@@ -108,7 +126,7 @@ class DartAnalyzer {
     }
 
     stop() {
-        vscode.window.showInformationMessage('analyzer server will stop\n')
+        vscode.window.showInformationMessage('analyze server will stop\n');
         this.analysisServer.stop();
     }
 

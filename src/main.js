@@ -1,10 +1,10 @@
+const vscode = require('vscode');
 const DartAnalyzer = require('./services/dart-analyzer');
 const CommandManager = require('./command-manager');
 const ProvidersManager = require('./providers-manager');
 const EventManager = require('./event-manager');
-const LogService = require('./services/log-service');
+const { LogService } = require('./services/log-service');
 const { findPaths } = require("./utils/path-provider");
-const vscode = require('vscode');
 
 let dartAnalysisServer;
 
@@ -21,7 +21,8 @@ async function activate(context) {
     const providersManager = new ProvidersManager(context);
     providersManager.registerProviders();
 
-    await DartAnalyzer.getInstance().start();
+    await DartAnalyzer.getInstance().autostart();
+    
     DartAnalyzer.getInstance().registerSwitchCommands(context);
     dartAnalysisServer = DartAnalyzer.getInstance().analysisServer;
 

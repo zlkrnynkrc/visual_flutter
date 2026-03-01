@@ -1,16 +1,15 @@
 const vscode = require('vscode');
+const ConfigProvider = require ('../utils/config-provider');
 const { assert } = require('console');
 
 const bufferSize = 100;
+const awareUser = 'aware';
 
 class LogService {
 
     static _lastMessages = [];
-    
+
     static _canLog = true;
-    static _config () {
-        return vscode.workspace.getConfiguration('visual_flutter');
-    }
 
     static _addMessage(message) {
         if (this._lastMessages.length > bufferSize) {
@@ -18,9 +17,19 @@ class LogService {
         }
         this._lastMessages.push(message);
     }
+    
+    static _showDialog(text, action) {
+        const yes = 'Yes';
+        vscode.window.showInformationMessage(text, yes, 'No')
+            .then((answer) => {
+                if (answer === yes && action) {
+                    action();
+                }
+            });
+    }
 
     static canLog() {
-        const autolog = this._config().get('autolog', true);
+        const autolog = ConfigProvider.configByProperty('autolog', true);
         return autolog || this._canLog;
     }
 
@@ -34,6 +43,15 @@ class LogService {
     }
 
     static error(message, ...optionalParams) {
+        if (optionalParams.some((p) => p.toString() === awareUser))
+        {
+            const action = optionalParams.find((p) =>
+                typeof p === 'function'
+            );
+            const info = 'Visual Flutter: some error detected. ' +
+                'Stop Analysis Server?';
+            this._showDialog(info, action);
+        }
         this._addMessage(message);
         this.canLog() ? console.error(message, optionalParams) : {};
     }
@@ -42,7 +60,6 @@ class LogService {
         this._addMessage(message);
         this.canLog() ? assert(value, message, optionalParams) : {};
     }
-    
 }
 
-module.exports = LogService;
+module.exports = { LogService, awareUser };

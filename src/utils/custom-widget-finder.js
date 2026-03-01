@@ -1,6 +1,6 @@
 const vscode = require('vscode');
-const LogService = require('../services/log-service');
-const { libPath } = require("../utils/path-provider");
+const { LogService } = require('../services/log-service');
+const { getLibPath: libPath } = require("../utils/path-provider");
 
 function extractConstructorParams(content, widgetName) {
     // Enhanced regex to capture more complex parameter declarations
