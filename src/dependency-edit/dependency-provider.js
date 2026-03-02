@@ -1,6 +1,6 @@
 const vscode = require('vscode');
 const { DependencyWebViewHtml, commands } = require('./dependency-html');
-const { setOnDidChangeVisibility } = require('../utils/webview-validator');
+const { setOnDidChangeVisibility, getEmptyHtml } = require('../utils/webview-validator');
 
 class DependencyProvider {
 
@@ -8,18 +8,20 @@ class DependencyProvider {
         this.extensionUri = extensionUri;
         this.dependencyService = dependencyService;
         this.pubspecManager = pubspecManager;
-        this.cspSourceDefault = undefined;
-        this._view = undefined;
         this.dependencies = [];
+        this._cspSourceDefault = undefined;
+        this._view = undefined;
     }
 
     async resolveWebviewView(webviewView) {
         this._view = webviewView;
-        this.cspSourceDefault = webviewView.webview.cspSource;
-        webviewView.webview.options.localResourceRoots = [this.extensionUri];
-
-        await this.updateWebviewContent();
-
+        this._cspSourceDefault = webviewView.webview.cspSource;
+        
+        webviewView.webview.html = getEmptyHtml();
+        webviewView.webview.options = {
+            enableScripts: true,
+            localResourceRoots: [this.extensionUri]
+        };
         webviewView.webview.onDidReceiveMessage((message) => {
             switch (message.command) {
                 case commands.refresh:
@@ -39,7 +41,7 @@ class DependencyProvider {
                     break;
             }
         });
-        webviewView.webview.options.enableScripts = true;
+        await this.updateWebviewContent();
 
         setOnDidChangeVisibility(webviewView, () => this.dispose());
     }
@@ -54,7 +56,7 @@ class DependencyProvider {
         if (!pubspec) { return; }
 
         this.dependencies = await this.dependencyService.fetchDependencies(pubspec);
-        const html = DependencyWebViewHtml.generate(this.dependencies, this.cspSourceDefault);
+        const html = DependencyWebViewHtml.generate(this.dependencies, this._cspSourceDefault);
 
         if (this._view) {
             this._view.webview.html = html;
@@ -66,7 +68,7 @@ class DependencyProvider {
                        .then(() => this.updateWebviewContent());
     }
 
-    removeDependency(dependencyName) {
+    async removeDependency(dependencyName) {
         // Remove from the in-memory list
         const index = this.dependencies.findIndex((dep) => dep.name === dependencyName);
 
@@ -77,7 +79,7 @@ class DependencyProvider {
         this.dependencies.splice(index, 1);
 
         // Update pubspec.yaml file
-        const pubspec = this.pubspecManager.readPubspec();
+        const pubspec = await this.pubspecManager.readPubspec();
 
         if (!pubspec || !pubspec.dependencies) {
             vscode.window.showErrorMessage('Failed to load pubspec.yaml.');
@@ -93,8 +95,8 @@ class DependencyProvider {
         vscode.window.showInformationMessage(`Removed dependency "${dependencyName}".`);
     }
 
-    refresh(dependency) {
-        const pubspec = this.pubspecManager.readPubspec();
+    async refresh(dependency) {
+        const pubspec = await this.pubspecManager.readPubspec();
 
         if (!pubspec) { return; }
 
@@ -105,16 +107,10 @@ class DependencyProvider {
 
     updateDependency() {
         vscode.commands.executeCommand('flutter.packages.upgrade');
-        /* const terminal = vscode.window.createTerminal({ name: 'List Update Dependencies' });
-        terminal.show();
-        terminal.sendText('dart pub update'); */
     }
 
     listOutdatedDependencies() {
         vscode.commands.executeCommand('flutter.packages.outdated');
-        /* const terminal = vscode.window.createTerminal({ name: 'List Outdated Dependencies' });
-        terminal.show();
-        terminal.sendText('dart pub outdated'); */
     }
 }
 

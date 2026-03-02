@@ -4,7 +4,7 @@ class DependencyWebViewHtml {
 
     static generate(dependencies, cspSource) {
         const nonce = getNonce();
-        const csp = getCSP(nonce, cspSource);
+        const csp = getCSP(nonce, cspSource, true);
         const rows = dependencies
             .map((dep) => {
                 const isLatest = dep.current == '^' + dep.latest;

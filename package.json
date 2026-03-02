@@ -178,22 +178,22 @@
           "group": "navigation"
         },
         {
-          "when": "view == flutter-permissions-activitybar && !server:running",
+          "when": "view == widget-fields-sidebar-activitybar && !server:running",
           "command": "analysisserver.start",
           "group": "navigation"
         },
         {
-          "when": "view == flutter-permissions-explorer && !server:running",
+          "when": "view == widget-fields-sidebar-explorer && !server:running",
           "command": "analysisserver.start",
           "group": "navigation"
         },
         {
-          "when": "view == flutter-permissions-activitybar && server:running",
+          "when": "view == widget-fields-sidebar-activitybar && server:running",
           "command": "analysisserver.stop",
           "group": "navigation"
         },
         {
-          "when": "view == flutter-permissions-explorer && server:running",
+          "when": "view == widget-fields-sidebar-explorer && server:running",
           "command": "analysisserver.stop",
           "group": "navigation"
         }

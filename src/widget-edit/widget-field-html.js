@@ -1,6 +1,7 @@
 const vscode = require('vscode');
 const { Kind } = require('../widget-list/kinds');
 const { getNonce, getCSP } = require( '../utils/webview-validator');
+const emptyViewText = 'Edit Widget Properties';
 
 function getHtml() {
     const nonce = getNonce();
@@ -26,7 +27,7 @@ function getHtml() {
         </style>
     </head>
     <body> 
-        <h3>Edit Widget Properties</h3>
+        <h3>${emptyViewText}</h3>
     </body>
     </html>`;
 }
@@ -37,7 +38,7 @@ function getWebviewContent(widgetInfo, webview, extensionUri, cspSource) {
         return;
     }
     const nonce = getNonce();
-    const csp = getCSP(nonce, cspSource, false);
+    const csp = getCSP(nonce, cspSource, true);
     const folder = 'media';
     const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, folder, 'styles.css'));
     const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, folder, 'scripts.js'));

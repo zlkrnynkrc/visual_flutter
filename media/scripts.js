@@ -1,3 +1,4 @@
+// @ts-nocheck
 const vscode = acquireVsCodeApi();
 
 document.addEventListener('DOMContentLoaded', () => {

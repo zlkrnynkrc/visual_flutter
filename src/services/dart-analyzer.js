@@ -118,10 +118,7 @@ class DartAnalyzer {
             DartAnalyzer.commands.stop,
             () => this._server(must.Stop)
         );
-        context.subscriptions.push(
-            start,
-            stop
-        );
+        context.subscriptions.push(start, stop);
         this.switchStartStopServerTag();
     }
 

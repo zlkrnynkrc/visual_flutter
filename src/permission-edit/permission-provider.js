@@ -1,5 +1,5 @@
 const { getPermissionsList, getPermissionsMap } = require('./permission-list');
-const { getNonce, setOnDidChangeVisibility, getCSP } = require( '../utils/webview-validator');
+const { getNonce, setOnDidChangeVisibility, getCSP, getEmptyHtml } = require( '../utils/webview-validator');
 
 const commands = {
     add : 'addPermission',
@@ -19,8 +19,11 @@ class PermissionProvider {
     resolveWebviewView(webviewView) {
         this._view = webviewView;
         this.cspSourceDefault = webviewView.webview.cspSource;
-        this.updateWebview();
-
+        
+        webviewView.webview.html = getEmptyHtml();
+        webviewView.webview.options = {
+            enableScripts: true
+        };
         webviewView.webview.onDidReceiveMessage(async (message) => {
             switch (message.command) {
                 case commands.add:
@@ -33,7 +36,7 @@ class PermissionProvider {
                     break;
             }
         });
-        webviewView.webview.options.enableScripts = true;
+        this.updateWebview();
 
         setOnDidChangeVisibility(webviewView, () => this.dispose());
     }
@@ -54,7 +57,7 @@ class PermissionProvider {
 
     getWebviewContent(permissions) {
         const nonce = getNonce();
-        const csp = getCSP(nonce, this.cspSourceDefault);
+        const csp = getCSP(nonce, this.cspSourceDefault, true);
 
         if (!permissions) {
             return `<!DOCTYPE html>
@@ -169,7 +172,7 @@ class PermissionProvider {
                 <ul id="permissionsList">
                     ${permissionsList}
                 </ul>
-                <script nonce='${nonce}'>
+                <script nonce="${nonce}">
                     const vscode = acquireVsCodeApi();
                     const permissionsMap = ${JSON.stringify(this.permissionsMap)};
                     const availablePermissions = Object.keys(permissionsMap);

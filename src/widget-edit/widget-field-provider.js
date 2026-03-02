@@ -2,7 +2,7 @@ const vscode = require('vscode');
 const DartAnalyzer = require('../services/dart-analyzer');
 const ConfigProvider = require ('../utils/config-provider');
 const { LogService } = require('../services/log-service');
-const { setOnDidChangeVisibility } = require ('../utils/webview-validator');
+const { setOnDidChangeVisibility, getEmptyHtml } = require ('../utils/webview-validator');
 const { getHtml, getWebviewContent } = require('./widget-field-html');
 
 const commands = {
@@ -36,8 +36,11 @@ class WidgetFieldProvider {
         this._view = webviewView;
         this.cspSourceDefault = webviewView.webview.cspSource;
 
-        webviewView.webview.options.localResourceRoots = [this.extensionUri];
-        webviewView.webview.html = getHtml();
+        webviewView.webview.html = getEmptyHtml();
+        webviewView.webview.options = {
+            enableScripts: true,
+            localResourceRoots: [this.extensionUri]
+        };
         webviewView.webview.onDidReceiveMessage(async (message) => {
             switch (message.command) {
                 case commands.updateProperty:
@@ -58,13 +61,17 @@ class WidgetFieldProvider {
                     break;
             }
         });
-        webviewView.webview.options.enableScripts = true;
+        webviewView.webview.html = getHtml();
 
         setOnDidChangeVisibility(webviewView, () => this.dispose());
     }
 
     updateWebview(widgetInfo) {
-        if (!widgetInfo || !this._view) { return; }
+        if (!this._view) { return; }
+
+        if (!widgetInfo) {
+            this._view.webview.html = getHtml();
+        }
 
         this.widgetInfo = widgetInfo;
         this._view.webview.html = getWebviewContent(widgetInfo, this._view.webview, this.extensionUri, this.cspSourceDefault);

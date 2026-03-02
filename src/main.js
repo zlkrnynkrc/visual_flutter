@@ -1,18 +1,13 @@
-const vscode = require('vscode');
 const DartAnalyzer = require('./services/dart-analyzer');
 const CommandManager = require('./command-manager');
 const ProvidersManager = require('./providers-manager');
 const EventManager = require('./event-manager');
-const { LogService } = require('./services/log-service');
 const { findPaths } = require("./utils/path-provider");
 
 let dartAnalysisServer;
 
 async function activate(context) {
-    LogService.log(
-        "Visual Flutter extension is activated (workspace: " 
-        + vscode.workspace.name + ")"
-    );
+    
     await findPaths();
 
     const commandManager = new CommandManager(context);
@@ -34,7 +29,4 @@ function deactivate() {
     dartAnalysisServer?.stop();
 }
 
-module.exports = {
-    activate,
-    deactivate
-};
+module.exports = { activate, deactivate };

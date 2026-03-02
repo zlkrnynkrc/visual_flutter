@@ -24,18 +24,38 @@ function setOnDidChangeVisibility(webview, onInvisible) {
     );
 }
 
-function getCSP(nonce, cspSource, unsafeStyle = true) {
+function getCSP(nonce, cspSource, unsafeScript = false) {
     return [
-    `default-src 'none'`,
-    `script-src 'nonce-${nonce}' ${cspSource}`,
-    unsafeStyle ?
-        `style-src 'nonce-${nonce}' ${cspSource} 'unsafe-inline'`
-    :   `style-src ${cspSource}`,
-    `img-src ${cspSource} blob: data: https:`,
-    `frame-src ${cspSource} blob: data:`,
-    `worker-src blob: ${cspSource}`,
-    `connect-src ${cspSource} https: http://localhost:* http://127.0.0.1:*`
-  ].join("; ");
+        `default-src 'none'`,
+        unsafeScript ?
+            `script-src ${cspSource} 'unsafe-inline'`
+        :   `script-src 'nonce-${nonce}' ${cspSource}`,
+        `style-src 'nonce-${nonce}' ${cspSource} 'unsafe-inline'`,
+        `img-src ${cspSource} blob: data: https:`,
+        `frame-src ${cspSource} blob: data:`,
+        `worker-src blob: ${cspSource}`,
+        `connect-src ${cspSource} https: http://localhost:* http://127.0.0.1:*`
+    ].join("; ");
 }
 
-module.exports = { getNonce, getCSP, setOnDidChangeVisibility };
+function getEmptyHtml() {
+    const nonce = getNonce();
+    const csp = getCSP(nonce, this._cspSourceDefault, false);
+
+    return `<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta http-equiv="Content-Security-Policy" content="${csp}">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Widget Properties</title>
+        </head>
+        <body>
+            <h3> </h3>
+        </body>
+        </html>`;
+}
+
+const resourceRoots = 'media';
+
+module.exports = { getNonce, getCSP, setOnDidChangeVisibility, getEmptyHtml, resourceRoots };
