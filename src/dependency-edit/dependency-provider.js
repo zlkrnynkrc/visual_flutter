@@ -1,6 +1,6 @@
 const vscode = require('vscode');
 const { DependencyWebViewHtml, commands } = require('./dependency-html');
-const { setOnDidChangeVisibility, getEmptyHtml } = require('../utils/webview-validator');
+const { getEmptyHtml } = require('../utils/webview-validator');
 
 class DependencyProvider {
 
@@ -42,8 +42,6 @@ class DependencyProvider {
             }
         });
         await this.updateWebviewContent();
-
-        setOnDidChangeVisibility(webviewView, () => this.dispose());
     }
 
     dispose() {

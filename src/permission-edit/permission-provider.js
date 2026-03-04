@@ -1,5 +1,5 @@
 const { getPermissionsList, getPermissionsMap } = require('./permission-list');
-const { getNonce, setOnDidChangeVisibility, getCSP, getEmptyHtml } = require( '../utils/webview-validator');
+const { getNonce, getCSP, getEmptyHtml } = require( '../utils/webview-validator');
 
 const commands = {
     add : 'addPermission',
@@ -37,8 +37,6 @@ class PermissionProvider {
             }
         });
         this.updateWebview();
-
-        setOnDidChangeVisibility(webviewView, () => this.dispose());
     }
     
     dispose() {

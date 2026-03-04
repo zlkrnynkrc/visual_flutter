@@ -60,6 +60,16 @@ class LogService {
         this._addMessage(message);
         this.canLog() ? assert(value, message, optionalParams) : {};
     }
+
+    static notification(message, timeout) {
+        vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            cancellable: false,
+            title: message
+        }, () => new Promise((resolve) => {
+            setTimeout(resolve, timeout);
+        }));
+    }
 }
 
 module.exports = { LogService, awareUser };

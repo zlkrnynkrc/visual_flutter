@@ -1,40 +1,20 @@
 const vscode = require('vscode');
 const { Kind } = require('../widget-list/kinds');
-const { getNonce, getCSP } = require( '../utils/webview-validator');
-const emptyViewText = 'Edit Widget Properties';
+const { LogService } = require ('../services/log-service');
+const { getNonce, getCSP, getEmptyHtml } = require( '../utils/webview-validator');
+
+const emptyViewText = 'Select Widget Name To Edit';
 
 function getHtml() {
-    const nonce = getNonce();
-    const csp = getCSP(nonce, this.cspSourceDefault);
-    
-    return `<!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="Content-Security-Policy" content="${csp}">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Widget Properties</title>
-        <style nonce="${nonce}">
-            table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-            th, td {
-                padding: 8px;
-                text-align: left;
-                border-bottom: 1px solid #ddd;
-            }
-        </style>
-    </head>
-    <body> 
-        <h3>${emptyViewText}</h3>
-    </body>
-    </html>`;
+    return getEmptyHtml('Widget Properties', emptyViewText);
 }
 
 function getWebviewContent(widgetInfo, webview, extensionUri, cspSource) {
-    if (!widgetInfo.result) {
-        vscode.window.showWarningMessage('Cannot read widget properties.');
+    if (!widgetInfo?.result) {
+        if (widgetInfo) {
+            LogService.notification('Cannot read widget properties.', 2000);
+        }
+
         return;
     }
     const nonce = getNonce();
@@ -45,6 +25,7 @@ function getWebviewContent(widgetInfo, webview, extensionUri, cspSource) {
     widgetInfo.result.properties.sort((a, b) => {
         const nameA = a?.name || '';
         const nameB = b?.name || '';
+
         return nameA > nameB ? 1 : nameB > nameA ? -1 : 0;
     });
 
@@ -159,9 +140,9 @@ function generateColorInputField(property, value) {
     const hex = value.replace("Color(0xFF", "").replace(")", "");
     return `<div class="color-input-row">
                 <input type="text" class="colorText" id="${property.name}" value="${value}"
-                placeholder="(red,#ffeeff)"
+                placeholder="(red, #ff0000)"
                 oninput="filterColors(this)">
-                <input type="color" class="colorPicker" id="${property.name}" name="${property.name}" value="${hex}">
+                <input type="color" class="colorPicker" id="${property.name}" name="${property.name}" value="#${hex}">
             </div>`;
 }
 
@@ -176,6 +157,7 @@ function generateDefaultInputField(property, value, hintText) {
     if (property.type.toLowerCase().includes('edgeinset')) {
         return getEdginsetsHtml(property);
     }
+
     return `<div><input type="text" id="${property.name}" name="${property.name}" 
     value="${value}" ${hintText} class="generalinput-text" 
     placeholder="${property.type}"/>  </div>`;
@@ -190,6 +172,7 @@ function getEdginsetsHtml(property) {
             all = match[1];
         }
     }
+
     return ` 
         <table>
             <tr>

@@ -210,11 +210,10 @@
     "package": "vsce package --no-yarn"
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.7",
-    "@types/node": "20.x",
+    "@types/node": "^25.0.0",
     "@types/vscode": "^1.91.0",
     "@vscode/test-cli": "^0.0.11",
-    "@vscode/test-electron": "^2.4.1",
+    "@vscode/test-electron": "^2.5.2",
     "esbuild": "^0.27.2",
     "eslint": "^10.0.0",
     "globals": "^17.3.0",
@@ -231,6 +230,8 @@
     "minimatch": "^10.2.1",
     "eslint": {
       "ajv": "8.18.0"
-    }
+    },
+    "diff": "^8.0.3",
+    "serialize-javascript": "^7.0.3"
   }
 }

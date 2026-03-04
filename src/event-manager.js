@@ -1,8 +1,9 @@
+const vscode = require('vscode');
 const WidgetFieldProvider = require('./widget-edit/widget-field-provider');
 const WidgetInfoHandler = require('./handlers/widget-info-handler');
 const DocumentSaveHandler = require('./handlers/document-save-handler');
 const DartAnalyzer = require('./services/dart-analyzer');
-const vscode = require('vscode');
+const { LogService } = require ('./services/log-service');
 
 class EventManager {
     
@@ -33,8 +34,9 @@ class EventManager {
                         editor.document.uri.fsPath
                     );
                     if (!isFileAnalyzed) {
-                        vscode.window.showInformationMessage(
-                            `File is not analyzable: ${editor.document.uri.fsPath}`
+                        LogService.notification(
+                            `File is not analyzable: ${editor.document.uri.fsPath}`,
+                            1500
                         );
                     }
                 }
@@ -52,8 +54,8 @@ class EventManager {
                 position.line,
                 position.character
             );
-            WidgetFieldProvider.getInstance(this.context.extensionUri)
-                               .updateWebview(widgetInfo);
+            await WidgetFieldProvider.getInstance(this.context.extensionUri)
+                                     .updateWebview(widgetInfo);
         });
         this.context.subscriptions.push(disposable);
     }

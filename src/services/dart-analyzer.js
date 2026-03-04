@@ -16,6 +16,7 @@ class DartAnalyzer {
     }
 
     static serverMustStop = false;
+    static reopenWarningMessageShown = false;
 
     static commands = {
         start: 'analysisserver.start',
@@ -105,13 +106,18 @@ class DartAnalyzer {
         const start = vscode.commands.registerCommand(
             DartAnalyzer.commands.start, async () => {
                 await this._server(must.Start);
-                setTimeout(() =>
-                    vscode.window.showWarningMessage(
-                        'To use Widget Properties ' +
-                        'you may reopen active docs.'
-                    ),
-                    1000
-                );
+
+                if (!DartAnalyzer.reopenWarningMessageShown) {
+                    DartAnalyzer.reopenWarningMessageShown = true;
+                    
+                    setTimeout(() =>
+                        LogService.notification(
+                            'To use Widget Properties ' +
+                            'you may reopen active docs.',
+                            2000
+                        ), 1000
+                    );
+                }
             }
         );
         const stop = vscode.commands.registerCommand(

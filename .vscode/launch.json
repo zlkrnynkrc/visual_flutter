@@ -6,6 +6,16 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"request": "launch",
+			"type": "extensionHost",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}"
+			],
+			"name": "Run Test",
+			"testConfiguration": "${workspaceFolder}/.vscode-test.mjs",
+			"preLaunchTask": "npm: build",
+		},
+		{
 			"name": "Run Extension",
 			"type": "extensionHost",
 			"request": "launch",

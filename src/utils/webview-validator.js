@@ -38,9 +38,11 @@ function getCSP(nonce, cspSource, unsafeScript = false) {
     ].join("; ");
 }
 
-function getEmptyHtml() {
+function getEmptyHtml(title, content) {
     const nonce = getNonce();
-    const csp = getCSP(nonce, this._cspSourceDefault, false);
+    const csp = getCSP(nonce, this._cspSourceDefault);
+    const header = title ?? 'Empty View';
+    const text = content ?? '';
 
     return `<!DOCTYPE html>
         <html lang="en">
@@ -48,10 +50,21 @@ function getEmptyHtml() {
             <meta charset="UTF-8">
             <meta http-equiv="Content-Security-Policy" content="${csp}">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Widget Properties</title>
+            <title>${header}</title>
+            <style nonce="${nonce}">
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                th, td {
+                    padding: 8px;
+                    text-align: left;
+                    border-bottom: 1px solid #ddd;
+                }
+            </style>
         </head>
         <body>
-            <h3> </h3>
+            <h3>${text}</h3>
         </body>
         </html>`;
 }

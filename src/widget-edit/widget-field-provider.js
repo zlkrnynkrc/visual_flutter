@@ -2,7 +2,7 @@ const vscode = require('vscode');
 const DartAnalyzer = require('../services/dart-analyzer');
 const ConfigProvider = require ('../utils/config-provider');
 const { LogService } = require('../services/log-service');
-const { setOnDidChangeVisibility, getEmptyHtml } = require ('../utils/webview-validator');
+const { getEmptyHtml } = require ('../utils/webview-validator');
 const { getHtml, getWebviewContent } = require('./widget-field-html');
 
 const commands = {
@@ -19,7 +19,7 @@ class WidgetFieldProvider {
         this.isUpdatingProperty = false;
         this.isAutosave = true;
         this.cspSourceDefault = undefined;
-        this._view = null;
+        this._view = undefined;
     }
 
     static getInstance(extensionUri) {
@@ -61,20 +61,29 @@ class WidgetFieldProvider {
                     break;
             }
         });
-        webviewView.webview.html = getHtml();
-
-        setOnDidChangeVisibility(webviewView, () => this.dispose());
+        this.updateWebview();
     }
 
-    updateWebview(widgetInfo) {
-        if (!this._view) { return; }
+    async updateWebview(widgetInfo) {
+        if (!this._view) {
+            await vscode.commands.executeCommand(
+                "workbench.view.extension.flutter-widget-properties"
+            );
+            await vscode.commands.executeCommand("widget-fields-sidebar-activitybar.focus");
+            
+            if (!this._view) { return; }
+        }
 
         if (!widgetInfo) {
             this._view.webview.html = getHtml();
+
+            return;
         }
 
         this.widgetInfo = widgetInfo;
-        this._view.webview.html = getWebviewContent(widgetInfo, this._view.webview, this.extensionUri, this.cspSourceDefault);
+        this._view.webview.html = getWebviewContent(
+            widgetInfo, this._view.webview, this.extensionUri, this.cspSourceDefault
+        );
     }
 
     async updateWidgetProperty(message) {
@@ -289,21 +298,13 @@ class WidgetFieldProvider {
 
     dispose() {
         this._view?.dispose();
+        this._view = undefined;
     }
 
     showInvalidProjectMessage() {
-        this._view.webview.html = `<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <meta http-equiv="Content-Security-Policy">
-            <title>Widget Properties</title>
-        </head>
-        <body> 
-            <h3>Not valid dart project</h3>
-        </body>
-        </html`;
+        if (this._view) {
+            this._view.webview.html = getEmptyHtml('Widget Properties', 'Not valid dart project');
+        }
     }
 }
 
