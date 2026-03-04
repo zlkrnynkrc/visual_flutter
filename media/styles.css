@@ -326,44 +326,43 @@ th {
 .switch {
     position: relative;
     display: inline-block;
-    width: 56px;
-    height: 30px;
+    width: 51px;
+    height: 26px;
+    vertical-align: middle;
 }
 
 /* Hide default HTML checkbox */
 .switch input {
-    opacity: 0;
+    position: absolute;
     width: 0;
     height: 0;
+    opacity: 0;
 }
 
 /* The slider */
 .slider {
-    position: absolute;
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 98%;
     cursor: pointer;
-    margin: 3px 0px 1px 3px;
-    top: 0;
-    left: 0;
-    right: 3px;
-    bottom: 1px;
+    margin: 0px 0px 0px 3px;
     background-color: var(--vscode-inputOption-activeBackground);
     border: 1px solid var(--vscode-input-border);
     transition: .4s;
     border-color: var(--vscode-checkbox-border, var(--vscode-input-border));
     color: #00ffaa;
-    border-radius: 34px;
+    border-radius: 26px;
     /* Rounded corners */
 }
 
 .slider:before {
-    position: absolute;
     content: "";
-    height: 19px;
-    width: 19px;
-    top: 1px;
-    left: 2px;
-    bottom: 1px;
-    right: 2px;
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 2px;
+    left: 3px;
     background-color: var(--vscode-input-background);
     border: 1px solid var(--vscode-input-border);
     color: var(--vscode-editor-foreground);
