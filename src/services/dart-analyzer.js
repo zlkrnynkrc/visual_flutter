@@ -4,7 +4,7 @@ const FileAnalyzer = require('./file-analyzer');
 const ConfigProvider = require ('../utils/config-provider');
 const { LogService } = require('./log-service');
 const { DartAnalysisServer } = require('./dart-analysis-server');
-const { getLibPath: libPath } = require("../utils/path-provider");
+const { getLibPath } = require("../utils/path-provider");
 
 class DartAnalyzer {
     
@@ -59,13 +59,13 @@ class DartAnalyzer {
             this.sdkFinder.dartSdkExecutable,
             analyzerSnapshotPath
         );
-        vscode.window.showInformationMessage('analyze server started\n');
+        LogService.notification('analyze server started\n', 2000);
 
         if (!this.analysisServer) {
             vscode.window.showErrorMessage('cant start server');
             return;
         }
-        await this.analyzeProjectFiles(libPath());
+        await this.analyzeProjectFiles(getLibPath());
     }
 
     async updateContent(filePath, newContent) {
@@ -114,7 +114,7 @@ class DartAnalyzer {
                         LogService.notification(
                             'To use Widget Properties ' +
                             'you may reopen active docs.',
-                            2000
+                            3500
                         ), 1000
                     );
                 }
@@ -129,7 +129,7 @@ class DartAnalyzer {
     }
 
     stop() {
-        vscode.window.showInformationMessage('analyze server will stop\n');
+        LogService.notification('analyze server will stop\n', 2000);
         this.analysisServer.stop();
     }
 

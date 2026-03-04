@@ -2,7 +2,7 @@ const vscode = require('vscode');
 const DartAnalyzer = require('../services/dart-analyzer');
 const { LogService, awareUser } = require('../services/log-service');
 const { DOMParser } = require('@xmldom/xmldom');
-const { getManifestPath: manifestPath, fileExists } = require("../utils/path-provider");
+const { getManifestPath, fileExists } = require("../utils/path-provider");
 
 class ManifestService {
     
@@ -11,7 +11,7 @@ class ManifestService {
 
         const decoder = new TextDecoder('utf-8');
         const uint8Content =
-            await vscode.workspace.fs.readFile(vscode.Uri.file(manifestPath()));
+            await vscode.workspace.fs.readFile(vscode.Uri.file(getManifestPath()));
         const content = decoder.decode(uint8Content);
         const parser = new DOMParser();
         const doc = parser.parseFromString(content, 'text/xml');
@@ -25,7 +25,7 @@ class ManifestService {
 
         const decoder = new TextDecoder('utf-8');
         const uint8Content =
-                await vscode.workspace.fs.readFile(vscode.Uri.file(manifestPath()));
+                await vscode.workspace.fs.readFile(vscode.Uri.file(getManifestPath()));
         let content = decoder.decode(uint8Content);
 
         if (content.includes(permission)) {
@@ -38,7 +38,7 @@ class ManifestService {
 
         const encoder = new TextEncoder();
         await vscode.workspace.fs.writeFile(
-            vscode.Uri.file(manifestPath()),
+            vscode.Uri.file(getManifestPath()),
             encoder.encode(content)
         );
         vscode.window.showInformationMessage(`Added permission: ${permission}`);
@@ -49,7 +49,7 @@ class ManifestService {
 
         const decoder = new TextDecoder('utf-8');
         const uint8Content =
-                await vscode.workspace.fs.readFile(vscode.Uri.file(manifestPath()));
+                await vscode.workspace.fs.readFile(vscode.Uri.file(getManifestPath()));
         let content = decoder.decode(uint8Content);
         const regex = new RegExp(`\\s*<uses-permission android:name="${permission}" />\\s*`, 'g');
         
@@ -61,14 +61,14 @@ class ManifestService {
 
         const encoder = new TextEncoder();
         await vscode.workspace.fs.writeFile(
-            vscode.Uri.file(manifestPath()),
+            vscode.Uri.file(getManifestPath()),
             encoder.encode(content)
         );
         vscode.window.showInformationMessage(`Removed permission: ${permission}`);
     }
 
     async isValidPath() {
-        const path = manifestPath();
+        const path = getManifestPath();
         const existingManifest = path.trim() !== '' && await fileExists(path);
 
         if (!existingManifest) {

@@ -1,6 +1,6 @@
 const path = require('path');
 const vscode = require('vscode');
-const { getLibPath: libPath, fileStat } = require("../utils/path-provider");
+const { getLibPath, fileStat } = require("../utils/path-provider");
 
 class FileAnalyzer {
 
@@ -42,10 +42,10 @@ class FileAnalyzer {
     }
 
     async checkLibPath(projectPath) {
-        if (!libPath()) {
+        if (!getLibPath()) {
             return false;
         }
-        if (projectPath.startsWith(libPath())) { return true; }
+        if (projectPath.startsWith(getLibPath())) { return true; }
     }
 
     rejectFile(filePath) {

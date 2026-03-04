@@ -65,14 +65,7 @@ class WidgetFieldProvider {
     }
 
     async updateWebview(widgetInfo) {
-        if (!this._view) {
-            await vscode.commands.executeCommand(
-                "workbench.view.extension.flutter-widget-properties"
-            );
-            await vscode.commands.executeCommand("widget-fields-sidebar-activitybar.focus");
-            
-            if (!this._view) { return; }
-        }
+        if (!this._view) { return; }
 
         if (!widgetInfo) {
             this._view.webview.html = getHtml();

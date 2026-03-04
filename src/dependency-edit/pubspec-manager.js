@@ -1,16 +1,16 @@
 const vscode = require('vscode');
 const yaml = require('yaml');
-const { getPubspecPath: pubspecPath } = require('../utils/path-provider');
+const { getPubspecPath } = require('../utils/path-provider');
 
 class PubspecManager {
 
     async readPubspec() {
-        if (!pubspecPath()) { return null; }
+        if (!getPubspecPath()) { return null; }
 
         try {
             const decoder = new TextDecoder('utf-8');
             const uint8Content =
-                await vscode.workspace.fs.readFile(vscode.Uri.file(pubspecPath()));
+                await vscode.workspace.fs.readFile(vscode.Uri.file(getPubspecPath()));
 
             return yaml.parse(decoder.decode(uint8Content));
         } catch (error) {
@@ -19,13 +19,13 @@ class PubspecManager {
     }
 
     async writePubspec(pubspec) {
-        if (!pubspecPath()) { return; }
+        if (!getPubspecPath()) { return; }
 
         try {
             const encoder = new TextEncoder();
             const updatedContent = yaml.stringify(pubspec);
             await vscode.workspace.fs.writeFile(
-                vscode.Uri.file(pubspecPath()),
+                vscode.Uri.file(getPubspecPath()),
                 encoder.encode(updatedContent)
             );
         } catch (error) {

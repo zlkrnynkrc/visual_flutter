@@ -69,6 +69,13 @@ module.exports = {
     getHtml,
     getWebviewContent
 };
+function fixEscapeSymbols(str) {
+    return   str.replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+}
 
 function generateInputField(property) {
     const value = property.expression || '';
@@ -158,9 +165,12 @@ function generateDefaultInputField(property, value, hintText) {
         return getEdginsetsHtml(property);
     }
 
-    return `<div><input type="text" id="${property.name}" name="${property.name}" 
-    value="${value}" ${hintText} class="generalinput-text" 
-    placeholder="${property.type}"/>  </div>`;
+    return `<div>
+                <input type="text" id="${property.name}" name="${property.name}" 
+                    value="${fixEscapeSymbols(value)}" ${hintText} class="generalinput-text" 
+                    placeholder="${property.type}"
+                />
+            </div>`;
 }
 
 function getEdginsetsHtml(property) {

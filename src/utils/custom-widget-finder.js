@@ -1,6 +1,6 @@
 const vscode = require('vscode');
 const { LogService } = require('../services/log-service');
-const { getLibPath: libPath } = require("../utils/path-provider");
+const { getLibPath } = require("../utils/path-provider");
 
 function extractConstructorParams(content, widgetName) {
     // Enhanced regex to capture more complex parameter declarations
@@ -95,9 +95,9 @@ function generateWidgetTemplate(widgetName, params) {
 }
 
 async function findCustomWidgetFiles() {
-    if (!libPath()) {
+    if (!getLibPath()) {
         if (vscode.workspace.workspaceFolders?.length > 0) {
-            LogService.notification('No pubspec.yaml or lib folder found', 4000);
+            LogService.notification('No pubspec.yaml or lib folder found', 3000);
         } else {
             LogService.notification('No workspace folder opened', 2000);
         }
@@ -105,7 +105,7 @@ async function findCustomWidgetFiles() {
     }
 
     const customWidgets = [];
-    const globPattern = new vscode.RelativePattern(libPath(), '**/*.dart');
+    const globPattern = new vscode.RelativePattern(getLibPath(), '**/*.dart');
     const dartFiles = await vscode.workspace.findFiles(globPattern);
 
     for (const fileUri of dartFiles) {

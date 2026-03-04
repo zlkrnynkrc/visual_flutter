@@ -90,6 +90,7 @@ class WidgetInfoHandler {
 
         properties1.forEach(line => {
             const trimmedLine = line.trim();
+            
             if (!trimmedLine) { return; }
 
             const isRequired = trimmedLine.startsWith('required');
