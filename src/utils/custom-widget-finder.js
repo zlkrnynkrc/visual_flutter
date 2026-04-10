@@ -1,13 +1,13 @@
 const vscode = require('vscode');
-const { libPath } = require("../utils/path-provider");
-
+const { LogService } = require('../services/log-service');
+const { getLibPath } = require("../utils/path-provider");
 
 function extractConstructorParams(content, widgetName) {
     // Enhanced regex to capture more complex parameter declarations
     const constructorRegex = new RegExp(`${widgetName}\\s*\\(\\{([^}]+)\\}\\)\\s*;`, 's');
     const match = content.match(constructorRegex);
 
-    if (!match) return [];
+    if (!match) { return []; }
 
     // More comprehensive regex for parameter extraction
     const paramRegex = /(?:(?:required\s+)?(?:final\s+)?(?:const\s+)?)?(?:(?:super\.)?([a-zA-Z]\w*)\s*=\s*([^,]+)?|([a-zA-Z]\w*)\s+([a-zA-Z]\w*)(?:\s*=\s*([^,]+)?)?|\s*this\.([a-zA-Z]\w*)(?:\s*=\s*([^,]+)?)?)/g;
@@ -95,14 +95,17 @@ function generateWidgetTemplate(widgetName, params) {
 }
 
 async function findCustomWidgetFiles() {
-    if (!libPath) {
-        vscode.window.showInformationMessage('No workspace folder open');
+    if (!getLibPath()) {
+        if (vscode.workspace.workspaceFolders?.length > 0) {
+            LogService.notification('No pubspec.yaml or lib folder found', 3000);
+        } else {
+            LogService.notification('No workspace folder opened', 2000);
+        }
         return [];
     }
 
     const customWidgets = [];
-    const globPattern = new vscode.RelativePattern(libPath(), '**/*.dart');
-
+    const globPattern = new vscode.RelativePattern(getLibPath(), '**/*.dart');
     const dartFiles = await vscode.workspace.findFiles(globPattern);
 
     for (const fileUri of dartFiles) {
@@ -122,7 +125,7 @@ async function findCustomWidgetFiles() {
                 });
             }
         } catch (error) {
-            console.error(`Error processing file ${fileUri.fsPath}:`, error);
+            LogService.error(`Error processing file ${fileUri.fsPath}:`, error);
         }
     }
 

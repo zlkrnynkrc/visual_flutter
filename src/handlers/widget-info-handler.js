@@ -1,33 +1,42 @@
+const vscode = require('vscode');
 const DartAnalyzer = require('../services/dart-analyzer');
 const FileAnalyzer = require('../services/file-analyzer');
-const vscode = require('vscode');
+const { LogService } = require('../services/log-service');
+const {
+    serverNotStartedMessage,
+    fileNotAnalyzed
+} = require('../services/dart-analysis-server');
 
 class WidgetInfoHandler {
+
     static async getWidgetDescription(filePath, line, column) {
         const params = { file: filePath, offset: this.getOffset(line, column) };
         const request = { id: '1', method: 'flutter.getWidgetDescription', params };
 
         try {
             const dartAnalyzer = DartAnalyzer.getInstance().analysisServer;
-            const widgetInfo = await dartAnalyzer.sendRequest(request);
+            const breakAnalyze = DartAnalyzer.serverMustStop;
+            const widgetInfo = breakAnalyze ? {} : await dartAnalyzer.sendRequest(request);
 
             if (widgetInfo.id === '1' && widgetInfo.result) {
                 const editor = vscode.window.activeTextEditor;
                 const widgetDetail = await this.getHoverInfo(editor.document, editor.selection.active);
 
                 if (widgetDetail) {
-                    const mergedwidgetInfo= this.mergeProperties(widgetInfo, widgetDetail);
+                    const mergedwidgetInfo = this.mergeProperties(widgetInfo, widgetDetail);
+                    
                     return mergedwidgetInfo;
                 }
                 return widgetInfo.result || null;
             }
         } catch (error) {
-            console.error('Error getting widget description:', error);
-            switch (error) {
-                case 'Analysis server not started':
+            LogService.error('Error getting widget description: ', error);
+
+            switch (error?.message) {
+                case serverNotStartedMessage:
                     await this.analyzerServerNotStartedHandler();
                     return this.reGetWidgetDescription(request);
-                case 'FILE_NOT_ANALYZED':
+                case fileNotAnalyzed:
                     await this.fileNotAnalyzedHandler(filePath);
                     return this.reGetWidgetDescription(request);
                 default:
@@ -38,11 +47,13 @@ class WidgetInfoHandler {
     static async getHoverInfo(document, position) {
         const hoverResponse = await vscode.commands.executeCommand('vscode.executeHoverProvider', document.uri, position);
 
-        if (Array.isArray(hoverResponse)) {
-        if (!hoverResponse?.length) return null;
+        if (Array.isArray(hoverResponse))
+        {
+            if (!hoverResponse?.length) { return null; }
 
-        const hover = hoverResponse[0];
-        const range = hover.range;
+            const hover = hoverResponse[0];
+            const range = hover.range;
+
             for (const hoverItem of hoverResponse) {
                 for (const content of hoverItem.contents) {
                     const dartString = content instanceof vscode.MarkdownString
@@ -54,7 +65,7 @@ class WidgetInfoHandler {
                     if (dartString) {
                         const widgetDetail = this.parseWidgetProperties(dartString);
 
-                        if (!widgetDetail) return null;
+                        if (!widgetDetail) { return null; }
 
                         if (range) {
                             widgetDetail.start = range.start;
@@ -69,8 +80,8 @@ class WidgetInfoHandler {
     }
 
     static parseWidgetProperties(code) {
-        const widgetNameMatch = code.match(/(\w+)\s+(\w+)\(/);
-        if (!widgetNameMatch) return null;
+        const widgetNameMatch = code.match(/(\(\w+\))?\s*(\w+)\(/);
+        if (!widgetNameMatch) { return null; }
 
         const widgetName = widgetNameMatch[2];
         const properties = [];
@@ -79,7 +90,8 @@ class WidgetInfoHandler {
 
         properties1.forEach(line => {
             const trimmedLine = line.trim();
-            if (!trimmedLine) return;
+            
+            if (!trimmedLine) { return; }
 
             const isRequired = trimmedLine.startsWith('required');
             const [nameType, value] = trimmedLine.split('=').map(part => part.trim());
@@ -119,60 +131,45 @@ class WidgetInfoHandler {
         return widgetInfo;
     }
 
-
-    /* static async getWidgetDescription(filePath, line, column) {
-        const params = { file: filePath, offset: this.getOffset(line, column) };
-        const request = { id: '1', method: 'flutter.getWidgetDescription', params };
-       
-        try { 
-            const widgetInfo = await DartAnalyzer.getInstance().analysisServer.sendRequest(request);
-            return widgetInfo.result || null;
-        } catch (error) { 
-            switch (error) {
-                case 'Analysis server not started': 
-                    await this.analyzerServerNotStartedHandler();
-                    this.reGetWidgetDescription(request);
-                    break; 
-                case "FILE_NOT_ANALYZED": 
-                    await this.fileNotAnalyzedHandler(filePath);
-                    this.reGetWidgetDescription(request);
-                    break; 
-                default:
-                    break;
-            }
-        }
-    }  */
     static async reGetWidgetDescription(request) {
         try {
             const dartAnalyzer = DartAnalyzer.getInstance().analysisServer;
             const widgetInfo = await dartAnalyzer.sendRequest(request);
             return widgetInfo.result || null;
         } catch (error) {
-            console.error('Error fetching widget description:', error);
+            LogService.error('Error fetching widget description: ', error);
         }
     }
 
     static getOffset(line, column) {
-        const fileContent = vscode.window.activeTextEditor.document.getText();
-        if (!fileContent) throw new Error('File content not found');
+        const fileContent = vscode.window.activeTextEditor?.document?.getText();
+        
+        if (!fileContent) { return; }
+
         return fileContent.split('\n')
             .slice(0, line)
             .reduce((offset, lineContent) => offset + lineContent.length + 1, 0) + column;
     }
+
     static async analyzerServerNotStartedHandler() {
         try {
-            const dartAnalyzer = DartAnalyzer.getInstance();
-            dartAnalyzer.start();
+            if (!DartAnalyzer.serverMustStop) {
+                const dartAnalyzer = DartAnalyzer.getInstance();
+                dartAnalyzer.start();
+            }
         } catch (error) {
-            console.error('Cant start server:', error);
+            LogService.error('Cant start server: ', error);
         }
     }
+
     static async fileNotAnalyzedHandler(filePath) {
         try {
             const fileAnalyzer = FileAnalyzer.getInstance();
-            fileAnalyzer.analyzeFile(filePath);
+            DartAnalyzer.serverMustStop ?
+                fileAnalyzer.rejectFile(filePath)
+            :   await fileAnalyzer.analyzeFile(filePath);
         } catch (error) {
-            console.error('Cant start server:', error);
+            LogService.error('Cant start server: ', error);
         }
     }
 }

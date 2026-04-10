@@ -1,22 +1,20 @@
-const WorkspaceJsonCreater = require("./workspace-json-creater");
-const { projectPath } = require("../utils/path-provider");
-
-
-const vscode = require("vscode");
-const fs = require("fs");
 const path = require("path");
+const vscode = require("vscode");
+const WorkspaceJsonCreater = require("./workspace-json-creater");
+const { getProjectPath } = require("../utils/path-provider");
+
+const platforms = ["Android", "iOS", "macOS", "Linux", "Web", "Windows"];
 
 class WorkspaceCommand {
-
     static async createAndApply() {
+        const projPath = getProjectPath();
 
-        if (!projectPath) {
-            vscode.window.showErrorMessage("No folder is open in VS Code!");
+        if (!projPath) {
+            vscode.window.showErrorMessage("No folder is opened in VS Code!");
             return;
         }
-        const projectName = path.basename(projectPath);
+        const projectName = path.basename(projPath);
         const workspaceFileName = `${projectName}.code-workspace`;
-        const platforms = ["Android", "iOS", "macOS", "Linux", "Web", "Windows"];
         const selectedPlatform = await vscode.window.showQuickPick(platforms, {
             placeHolder: "Select the platform for your project",
         });
@@ -27,7 +25,7 @@ class WorkspaceCommand {
         }
 
         let platformFolders =
-            WorkspaceJsonCreater.getplatformFolders(selectedPlatform);
+            WorkspaceJsonCreater.getPlatformFolders(selectedPlatform);
         const baseFolders = [
             {
                 name: "Source Code",
@@ -55,9 +53,13 @@ class WorkspaceCommand {
         };
 
         // Write the workspace configuration to a file
-        const workspaceFilePath = path.join(projectPath, ".vscode", workspaceFileName);
-        fs.writeFileSync(workspaceFilePath, JSON.stringify(workspaceConfig, null, 2));
-
+        const workspaceFilePath = path.join(projPath, ".vscode", workspaceFileName);
+        const encoder = new TextEncoder();
+        const content = JSON.stringify(workspaceConfig, null, 2);
+        await vscode.workspace.fs.writeFile(
+            vscode.Uri.file(workspaceFilePath),
+            encoder.encode(content)
+        );
         // Open the generated workspace
         const uri = vscode.Uri.file(workspaceFilePath);
         await vscode.commands.executeCommand("vscode.openFolder", uri, false);

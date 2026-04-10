@@ -1,37 +1,31 @@
-
-const { Kind } = require('../widget-list/kinds');
 const vscode = require('vscode');
+const { Kind } = require('../widget-list/kinds');
+const { LogService } = require ('../services/log-service');
+const { getNonce, getCSP, getEmptyHtml } = require( '../utils/webview-validator');
+
+const emptyViewText = 'Select Widget Name To Edit';
 
 function getHtml() {
-    return `<!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Widget Properties</title>
-        <style>
-            table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-            th, td {
-                padding: 8px;
-                text-align: left;
-                border-bottom: 1px solid #ddd;
-            }
-        </style>
-    </head>
-    <body> 
-        <h3>Edit Widget Properties</h3></body>
-        </html>`;
+    return getEmptyHtml('Widget Properties', emptyViewText);
 }
 
-function getWebviewContent(widgetInfo, webview, extensionUri) {
-    const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'media', 'styles.css'));
-    const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'media', 'scripts.js'));
+function getWebviewContent(widgetInfo, webview, extensionUri, cspSource) {
+    if (!widgetInfo?.result) {
+        if (widgetInfo) {
+            LogService.notification('Cannot read widget properties.', 2000);
+        }
+
+        return;
+    }
+    const nonce = getNonce();
+    const csp = getCSP(nonce, cspSource, true);
+    const folder = 'media';
+    const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, folder, 'styles.css'));
+    const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, folder, 'scripts.js'));
     widgetInfo.result.properties.sort((a, b) => {
         const nameA = a?.name || '';
         const nameB = b?.name || '';
+
         return nameA > nameB ? 1 : nameB > nameA ? -1 : 0;
     });
 
@@ -42,7 +36,7 @@ function getWebviewContent(widgetInfo, webview, extensionUri) {
                 return ` <tr>
                 <td>${property.name}</td>
                 <td>${generateInputField(property)}</td> 
-                </tr> `
+                </tr> `;
             }
         })
         .join('');
@@ -51,28 +45,38 @@ function getWebviewContent(widgetInfo, webview, extensionUri) {
         <html> 
         <head>
             <meta charset="UTF-8">
+            <meta http-equiv="Content-Security-Policy" content="${csp}">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Widget Properties</title> 
+            <title>Widget Properties</title>
             <link rel="stylesheet" href="${styleUri}">
         </head>
         <body>
             <h2>${widgetInfo.name}</h2>
             <div id="dynamicList"  class="dropdown-content"></div>
             <table>
-            ${tableRows}
-            </table> 
+                ${tableRows}
+            </table>
             <div class="suggestions-panel" id="suggestionsPanel">
                 <ul id="suggestionsList"></ul>
             </div>
-            <script src="${scriptUri}"></script>  
+            <script nonce='${nonce}' src="${scriptUri}"></script>  
         </body>
         </html>
     `;
 }
+
 module.exports = {
     getHtml,
     getWebviewContent
 };
+function fixEscapeSymbols(str) {
+    return   str.replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+}
+
 function generateInputField(property) {
     const value = property.expression || '';
     const isDefault = property.defvalue !== undefined && property.defvalue !== null;
@@ -143,9 +147,9 @@ function generateColorInputField(property, value) {
     const hex = value.replace("Color(0xFF", "").replace(")", "");
     return `<div class="color-input-row">
                 <input type="text" class="colorText" id="${property.name}" value="${value}"
-                placeholder="(red,#ffeeff)"
+                placeholder="(red, #ff0000)"
                 oninput="filterColors(this)">
-                <input type="color" class="colorPicker" id="${property.name}" name="${property.name}" value="${hex}">
+                <input type="color" class="colorPicker" id="${property.name}" name="${property.name}" value="#${hex}">
             </div>`;
 }
 
@@ -160,9 +164,13 @@ function generateDefaultInputField(property, value, hintText) {
     if (property.type.toLowerCase().includes('edgeinset')) {
         return getEdginsetsHtml(property);
     }
-    return `<div><input type="text" id="${property.name}" name="${property.name}" 
-    value="${value}" ${hintText} class="generalinput-text" 
-    placeholder="${property.type}"/>  </div>`;
+
+    return `<div>
+                <input type="text" id="${property.name}" name="${property.name}" 
+                    value="${fixEscapeSymbols(value)}" ${hintText} class="generalinput-text" 
+                    placeholder="${property.type}"
+                />
+            </div>`;
 }
 
 function getEdginsetsHtml(property) {
@@ -174,6 +182,7 @@ function getEdginsetsHtml(property) {
             all = match[1];
         }
     }
+
     return ` 
         <table>
             <tr>

@@ -1,76 +1,159 @@
 const vscode = require('vscode');
 const SdkFinder = require('./dart-sdk-finder');
-const DartAnalysisServer = require('./dart-analysis-server');
 const FileAnalyzer = require('./file-analyzer');
-const { libPath } = require("../utils/path-provider");
-
+const ConfigProvider = require ('../utils/config-provider');
+const { LogService } = require('./log-service');
+const { DartAnalysisServer } = require('./dart-analysis-server');
+const { getLibPath } = require("../utils/path-provider");
 
 class DartAnalyzer {
-  constructor() {
-    this.analyzedProjectFiles = new Set();
-    this.config = vscode.workspace.getConfiguration('widgetedit');
-    this.sdkFinder = new SdkFinder();
-    this.analysisServer = new DartAnalysisServer();
-    this.fileAnalyzer = new FileAnalyzer(this.analysisServer, this.analyzedProjectFiles);
-  }
-
-  static getInstance() {
-    if (!this.instance) {
-      this.instance = new DartAnalyzer();
-    }
-    return this.instance;
-  }
-
-  async start() {
-    if (this.analysisServer.isRunning()) return;
-
-    await this.sdkFinder.detectSdks();
-
-    const dartSdkPath = this.sdkFinder.dartSdkPath;
-    const analyzerSnapshotPath = this.sdkFinder.analysisServerSnapshot;
-
-    if (!dartSdkPath || !analyzerSnapshotPath) {
-      vscode.window.showErrorMessage('Dart SDK or analysis server snapshot not found.');
-      return;
+    
+    constructor() {
+        this.analyzedProjectFiles = new Set();
+        this.sdkFinder = new SdkFinder();
+        this.analysisServer = new DartAnalysisServer();
+        this.fileAnalyzer = new FileAnalyzer(this.analysisServer, this.analyzedProjectFiles);
     }
 
-    this.analysisServer.start(
-      this.sdkFinder.dartSdkExecutable,
-      analyzerSnapshotPath
-    );
-    vscode.window.showInformationMessage('anaylzer server started\n')
+    static serverMustStop = false;
+    static reopenWarningMessageShown = false;
 
-    if (!this.analysisServer) {
-      vscode.window.showErrorMessage('cant start server');
-      return;
-    }
-    await this.analyzeProjectFiles(libPath());
-  }
-
-  async updateContent(filePath, newContent) {
-    const params = {
-      files: {
-        [filePath]: {
-          type: 'add',
-          content: newContent,
-        },
-      },
+    static commands = {
+        start: 'analysisserver.start',
+        stop: 'analysisserver.stop'
     };
-    const request = {
-      id: '4',
-      method: 'analysis.updateContent',
-      params,
-    };
-    await this.analysisServer.sendRequest(request);
-  }
 
-  async analyzeProjectFiles(files) {
-    return this.fileAnalyzer.analyzeProjectFiles(files);
-  }
+    static getInstance() {
+        if (!this.instance) {
+            this.instance = new DartAnalyzer();
+        }
+        return this.instance;
+    }
 
-  analyzeFile(filePath) {
-    this.fileAnalyzer.analyzeFile(filePath);
-  }
+    async autostart() {
+        const canRun = ConfigProvider.configByProperty('autostart', false);
+        
+        if(canRun) {
+            await this.start();
+        } else {
+            DartAnalyzer.serverMustStop = true;
+        }
+    }
+
+    async start() {
+        if (this.analysisServer.isRunning()) { return; }
+
+        await this.sdkFinder.detectSdks();
+
+        const dartSdkPath = this.sdkFinder.dartSdkPath;
+        const analyzerSnapshotPath = this.sdkFinder.analysisServerSnapshot;
+
+        if (!dartSdkPath || !analyzerSnapshotPath) {
+            vscode.window.showErrorMessage(
+                'Dart SDK or analysis server snapshot not found.'
+            );
+            return;
+        }
+
+        this.analysisServer.start(
+            this.sdkFinder.dartSdkExecutable,
+            analyzerSnapshotPath
+        );
+        LogService.notification('analyze server started\n', 2000);
+
+        if (!this.analysisServer) {
+            vscode.window.showErrorMessage('cant start server');
+            return;
+        }
+        await this.analyzeProjectFiles(getLibPath());
+    }
+
+    async updateContent(filePath, newContent) {
+        const params = {
+            files: {
+                [filePath]: {
+                    type: 'add',
+                    content: newContent,
+                },
+            },
+        };
+        const request = {
+            id: '4',
+            method: 'analysis.updateContent',
+            params,
+        };
+        const response = await this.analysisServer.sendRequest(request);
+        LogService.assert(response);
+    }
+
+    async analyzeProjectFiles(files) {
+        return this.fileAnalyzer.analyzeProjectFiles(files);
+    }
+
+    async analyzeFile(filePath) {
+        await this.fileAnalyzer.analyzeFile(filePath);
+    }
+
+    switchStartStopServerTag() {
+        vscode.commands.executeCommand(
+            'setContext', 
+            'server:running',
+            this.analysisServer.isRunning()
+        );
+    }
+
+    registerSwitchCommands(context) {
+        const start = vscode.commands.registerCommand(
+            DartAnalyzer.commands.start, async () => {
+                await this._server(must.Start);
+
+                if (!DartAnalyzer.reopenWarningMessageShown) {
+                    DartAnalyzer.reopenWarningMessageShown = true;
+                    
+                    setTimeout(() =>
+                        LogService.notification(
+                            'To use Widget Properties ' +
+                            'you may reopen active docs.',
+                            3500
+                        ), 1000
+                    );
+                }
+            }
+        );
+        const stop = vscode.commands.registerCommand(
+            DartAnalyzer.commands.stop,
+            () => this._server(must.Stop)
+        );
+        context.subscriptions.push(start, stop);
+        this.switchStartStopServerTag();
+    }
+
+    stop() {
+        LogService.notification('analyze server will stop\n', 2000);
+        this.analysisServer.stop();
+    }
+
+    async _server(_must) {
+        switch (_must) {
+            case must.Stop:
+                this.stop();
+                DartAnalyzer.serverMustStop = true;
+                LogService.setCanLog(false);
+                break;
+            case must.Start:
+            default:
+                DartAnalyzer.serverMustStop = false;
+                LogService.setCanLog(true);
+                await this.start();
+                break;
+        }
+        this.switchStartStopServerTag();
+    }
 }
+
+const must = Object.freeze({
+  Start: 'KOS',
+  Stop:  'DUR'
+});
 
 module.exports = DartAnalyzer;

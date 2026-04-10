@@ -1,11 +1,12 @@
-
+const vscode = require('vscode');
 const WidgetFieldProvider = require('./widget-edit/widget-field-provider');
 const WidgetInfoHandler = require('./handlers/widget-info-handler');
 const DocumentSaveHandler = require('./handlers/document-save-handler');
 const DartAnalyzer = require('./services/dart-analyzer');
-const vscode = require('vscode');
+const { LogService } = require ('./services/log-service');
 
 class EventManager {
+    
     constructor(context, dartAnalysisServer, providersManager) {
         this.context = context;
         this.dartAnalysisServer = dartAnalysisServer;
@@ -23,9 +24,21 @@ class EventManager {
         const disposable = vscode.window.onDidChangeActiveTextEditor(async (editor) => {
             if (editor) {
                 const dartAnalyzer = DartAnalyzer.getInstance();
-                const isFileAnalyzed = await dartAnalyzer.analyzeProjectFiles(editor.document.uri.fsPath);
-                if (!isFileAnalyzed) {
-                    vscode.window.showInformationMessage(`File is not analyzable: ${editor.document.uri.fsPath}`);
+
+                if (DartAnalyzer.serverMustStop) {
+                    dartAnalyzer.fileAnalyzer.rejectFile(editor.document.uri.fsPath);
+                    return;
+                }
+                else if (dartAnalyzer.analysisServer.isRunning()) {
+                    const isFileAnalyzed = await dartAnalyzer.analyzeProjectFiles(
+                        editor.document.uri.fsPath
+                    );
+                    if (!isFileAnalyzed) {
+                        LogService.notification(
+                            `File is not analyzable: ${editor.document.uri.fsPath}`,
+                            1500
+                        );
+                    }
                 }
             }
         });
@@ -36,8 +49,13 @@ class EventManager {
         const disposable = vscode.window.onDidChangeTextEditorSelection(async (event) => {
             const editor = event.textEditor;
             const position = editor.selection.active;
-            const widgetInfo = await WidgetInfoHandler.getWidgetDescription(editor.document.uri.fsPath, position.line, position.character);
-            WidgetFieldProvider.getInstance(this.context.extensionUri).updateWebview(widgetInfo);
+            const widgetInfo = await WidgetInfoHandler.getWidgetDescription(
+                editor.document.uri.fsPath,
+                position.line,
+                position.character
+            );
+            await WidgetFieldProvider.getInstance(this.context.extensionUri)
+                                     .updateWebview(widgetInfo);
         });
         this.context.subscriptions.push(disposable);
     }
@@ -52,9 +70,9 @@ class EventManager {
     _registerDisposeListener() {
         this.context.subscriptions.push({
             dispose: () => {
-                this.dartAnalysisServer?.kill();
-                this.providersManager.listProvider.disposeProvider();
-                this.providersManager.fieldProvider.disposeProvider();
+                this.dartAnalysisServer?.stop();
+                this.providersManager.widgetListProvider?.disposeProvider();
+                this.providersManager.fieldProvider?.disposeProvider();
             }
         });
     }

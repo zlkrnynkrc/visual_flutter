@@ -1,75 +1,99 @@
 const vscode = require('vscode');
 const DartAnalyzer = require('../services/dart-analyzer');
+const ConfigProvider = require ('../utils/config-provider');
+const { LogService } = require('../services/log-service');
+const { getEmptyHtml } = require ('../utils/webview-validator');
 const { getHtml, getWebviewContent } = require('./widget-field-html');
+
+const commands = {
+    updateProperty: 'updateProperty',
+    colorProperty: 'colorProperty',
+    getSuggestions: 'getSuggestions',
+    moveToWidget: 'moveToWidget'
+};
+
 class WidgetFieldProvider {
 
     constructor(extensionUri) {
         this.extensionUri = extensionUri;
-        this._view = null;
         this.isUpdatingProperty = false;
-        this.widgetInfo;
-        this.disposeMesager;
-        this.isautosave = true;
+        this.isAutosave = true;
+        this.cspSourceDefault = undefined;
+        this._view = undefined;
     }
 
     static getInstance(extensionUri) {
         if (!this.instance) {
             this.instance = new WidgetFieldProvider(extensionUri);
         }
-        const config = vscode.workspace.getConfiguration('widgetedit');
-        this.instance.isautosave = config.get('autosave');
+        this.instance.isAutosave =
+            ConfigProvider.configByProperty('autosave', true);
+
         return this.instance;
     }
 
     resolveWebviewView(webviewView) {
         this._view = webviewView;
+        this.cspSourceDefault = webviewView.webview.cspSource;
 
+        webviewView.webview.html = getEmptyHtml();
         webviewView.webview.options = {
             enableScripts: true,
             localResourceRoots: [this.extensionUri]
         };
-        webviewView.webview.html = getHtml();
-
-        this.disposeMesager = webviewView.webview.onDidReceiveMessage(async (message) => {
+        webviewView.webview.onDidReceiveMessage(async (message) => {
             switch (message.command) {
-                case 'updateProperty':
+                case commands.updateProperty:
+                case commands.colorProperty:
                     await this.updateWidgetProperty(message);
                     break;
-                case 'colorProperty':
-                    await this.updateWidgetProperty(message);
-                    break;
-                case 'getSuggestions':
+
+                case commands.getSuggestions:
                     await this.getSuggestions(message);
                     break;
-                case 'moveToWidget':
+
+                case commands.moveToWidget:
                     this.findFirstOccurrenceFromOffset(message.name, this.widgetInfo?.offset);
                     break;
+
                 default:
-                    vscode.window.showErrorMessage('Error:' + message.newValue);
+                    vscode.window.showErrorMessage('Error: ' + message.newValue);
                     break;
             }
         });
-
+        this.updateWebview();
     }
 
-    updateWebview(widgetInfo) {
-        if (!widgetInfo || !this._view) return;
+    async updateWebview(widgetInfo) {
+        if (!this._view) { return; }
+
+        if (!widgetInfo) {
+            this._view.webview.html = getHtml();
+
+            return;
+        }
+
         this.widgetInfo = widgetInfo;
-        this._view.webview.html = getWebviewContent(widgetInfo, this._view.webview, this.extensionUri);
+        this._view.webview.html = getWebviewContent(
+            widgetInfo, this._view.webview, this.extensionUri, this.cspSourceDefault
+        );
     }
 
     async updateWidgetProperty(message) {
         const prop = this.widgetInfo?.result.properties.find(i => i.name === message.propertyName);
-        if (this.isUpdatingProperty) return;
+
+        if (this.isUpdatingProperty) { return; }
 
         const widgetRange = await this.getWidgetConstructorRange();
+
         if (!widgetRange) {
-            console.error('Failed to determine widget range');
+            LogService.error('Failed to determine widget range');
             return;
         }
 
         const widgetCode = vscode.window.activeTextEditor?.document;
-        if (!widgetCode) return;
+
+        if (!widgetCode) { return; }
 
         let widgetText = widgetCode.getText(widgetRange);
         let newCode = widgetText;
@@ -83,24 +107,37 @@ class WidgetFieldProvider {
             const lineText = widgetCode.lineAt(startLine).text;
             const lineIndentMatch = lineText.match(/^\s*/);
             const indentation = lineIndentMatch ? lineIndentMatch[0] : '  ';
-            newCode = this.insertPropertyAtPosition(widgetText, insertPosition, message.propertyName, message.newValue, indentation);
+
+            newCode = this.insertPropertyAtPosition(
+                widgetText,
+                insertPosition,
+                message.propertyName,
+                message.newValue,
+                indentation
+            );
         }
         await this.applyEdit(widgetCode, widgetRange, newCode);
 
-        if (this.isautosave) {
+        if (this.isAutosave) {
             const activeEditor = vscode.window.activeTextEditor;
+
             if (activeEditor) {
                 const document = activeEditor.document;
                 document.save();
             }
         } else {
-            DartAnalyzer.getInstance().updateContent(widgetCode.uri.fsPath, vscode.window.activeTextEditor?.document.getText());
+            DartAnalyzer.getInstance()
+                        .updateContent(
+                            widgetCode.uri.fsPath,
+                            vscode.window.activeTextEditor?.document.getText()
+                        );
         }
         this.isUpdatingProperty = false;
     }
 
     replaceExistingProperty(widgetText, message, prop) {
-        const propertyPattern = new RegExp(`(\\s*)${prop.name}\\s*:\\s*[^,()]+(\\([^)]*\\))?(,)?`, 'gm');
+        const propertyPattern =
+            new RegExp(`(\\s*)${prop.name}\\s*:\\s*[^,()]+(\\([^)]*\\))?(,)?`, 'gm');
 
         if (message.newValue === "") {
             return widgetText.replace(propertyPattern, '');
@@ -118,12 +155,17 @@ class WidgetFieldProvider {
 
     async getWidgetConstructorRange() {
         const document = vscode.window.activeTextEditor?.document;
-        if (!document || !this.widgetInfo?.offset) return null;
+
+        if (!document || !this.widgetInfo?.offset) { return null; }
 
         const startPosition = document.positionAt(this.widgetInfo.offset);
-        let currentPosition = document.offsetAt(startPosition) + this.widgetInfo.end.character - this.widgetInfo.start.character;
+        let currentPosition =
+            document.offsetAt(startPosition)
+            + this.widgetInfo.end.character
+            - this.widgetInfo.start.character;
 
         let parenDepth = 0;
+
         while (currentPosition < document.getText().length) {
             const char = document.getText().charAt(currentPosition);
             if (char === '(') {
@@ -179,9 +221,10 @@ class WidgetFieldProvider {
 
     moveToWidgetName(editor, document, textFromOffset, offset, indexInSubstring, searchText) {
         let positionInDocument = offset + indexInSubstring + searchText.length;
-        const remainingText = textFromOffset.substring(indexInSubstring + searchText.length);
 
+        const remainingText = textFromOffset.substring(indexInSubstring + searchText.length);
         const widgetName = this.extractWidgetName(remainingText);
+
         if (widgetName) {
             this.moveCursorToPosition(editor, document, positionInDocument, remainingText, widgetName);
         }
@@ -190,6 +233,7 @@ class WidgetFieldProvider {
     extractWidgetName(text) {
         const widgetNameRegex = /\bconst\s+([A-Za-z_]\w*)\b|\b([A-Za-z_]\w*)\b/g;
         const match = widgetNameRegex.exec(text);
+
         return match ? (match[1] || match[2]) : null;
     }
 
@@ -208,10 +252,10 @@ class WidgetFieldProvider {
 
     async getSuggestions(message) {
         const editor = vscode.window.activeTextEditor;
+
         if (editor) {
             const position = editor.selection.active;
             const document = editor.document;
-
             const completionList = await vscode.commands.executeCommand(
                 'vscode.executeCompletionItemProvider',
                 document.uri,
@@ -246,21 +290,14 @@ class WidgetFieldProvider {
     }
 
     dispose() {
-        this._view.dispose();
+        this._view?.dispose();
+        this._view = undefined;
     }
 
     showInvalidProjectMessage() {
-        this._view.webview.html = `<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Widget Properties</title>
-        </head>
-        <body> 
-            <h3>Not valid dart project</h3>
-        </body>
-        </html`;
+        if (this._view) {
+            this._view.webview.html = getEmptyHtml('Widget Properties', 'Not valid dart project');
+        }
     }
 }
 

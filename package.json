@@ -1,6 +1,6 @@
 {
   "name": "visualeditflutter",
-  "displayName": "visual_flutter",
+  "displayName": "Visual Flutter",
   "description": "Visual tools for editing widgets,dependencies,permissions for flutter",
   "publisher": "zlkrnynkrc",
   "repository": {
@@ -30,23 +30,33 @@
     "onLanguage:dart",
     "workspaceContains:**/pubspec.yaml"
   ],
-  "main": "./src/main.js",
+  "main": "./dist/extension.js",
   "contributes": {
     "configuration": {
       "type": "workspace",
-      "title": "Flutter widgetlist settings",
+      "title": "Visual Flutter",
       "properties": {
-        "visual_flutter.autosave": {
+        "visualFlutter.autostart": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable dart analysis server autostart"
+        },
+        "visualFlutter.autolog": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable logging all the time even server is stopped"
+        },
+        "visualFlutter.autosave": {
           "type": "boolean",
           "default": true,
           "description": "Enable autosave after changes"
         },
-        "visual_flutter.dartpath": {
+        "visualFlutter.dartPath": {
           "type": "string",
           "default": "/path/to/dart-sdk",
           "description": "Set a custom path for Dart SDK"
         },
-        "visual_flutter.dartsnapshot": {
+        "visualFlutter.dartSnapshot": {
           "type": "string",
           "default": "/path/to/dart-snapshot",
           "description": "Set a custom path for Dart snapshot"
@@ -66,21 +76,25 @@
     "views": {
       "flutter-widget-properties": [
         {
+          "icon": "media/list.svg",
           "type": "webview",
           "id": "flutter-widget-list-activitybar",
           "name": "Flutter Widget List"
         },
         {
+          "icon": "media/properties.svg",
           "type": "webview",
           "id": "widget-fields-sidebar-activitybar",
           "name": "Widget Properties"
         },
         {
+          "icon": "media/dependencies.svg",
           "type": "webview",
           "id": "flutter-dependencies-activitybar",
           "name": "Flutter Dependencies"
         },
         {
+          "icon": "media/permissions.svg",
           "type": "webview",
           "id": "flutter-permissions-activitybar",
           "name": "Flutter Permissions"
@@ -88,21 +102,25 @@
       ],
       "explorer": [
         {
+          "icon": "media/list.svg",
           "type": "webview",
           "id": "flutter-widget-list-explorer",
           "name": "Flutter Widget List"
         },
         {
+          "icon": "media/properties.svg",
           "type": "webview",
           "id": "widget-fields-sidebar-explorer",
           "name": "Widget Properties"
         },
         {
+          "icon": "media/dependencies.svg",
           "type": "webview",
           "id": "flutter-dependencies-explorer",
           "name": "Flutter Dependencies"
         },
         {
+          "icon": "media/permissions.svg",
           "type": "webview",
           "id": "flutter-permissions-explorer",
           "name": "Flutter Permissions"
@@ -117,6 +135,14 @@
       {
         "command": "dependencies.listOutdated",
         "title": "List Outdated Dependencies"
+      },
+      {
+        "command": "analysisserver.start",
+        "title": "Start Analysis Server"
+      },
+      {
+        "command": "analysisserver.stop",
+        "title": "Stop Analysis Server"
       },
       {
         "command": "flutter.per.abi",
@@ -150,6 +176,26 @@
           "when": "view == flutter-dependencies-explorer",
           "command": "dependencies.add",
           "group": "navigation"
+        },
+        {
+          "when": "view == widget-fields-sidebar-activitybar && !server:running",
+          "command": "analysisserver.start",
+          "group": "navigation"
+        },
+        {
+          "when": "view == widget-fields-sidebar-explorer && !server:running",
+          "command": "analysisserver.start",
+          "group": "navigation"
+        },
+        {
+          "when": "view == widget-fields-sidebar-activitybar && server:running",
+          "command": "analysisserver.stop",
+          "group": "navigation"
+        },
+        {
+          "when": "view == widget-fields-sidebar-explorer && server:running",
+          "command": "analysisserver.stop",
+          "group": "navigation"
         }
       ]
     }
@@ -158,21 +204,34 @@
     "lint": "eslint .",
     "pretest": "npm run lint",
     "test": "vscode-test",
-    "build": "echo 'No build step required for JavaScript'",
+    "build": "node ./esbuild.config.js --watch",
+    "postinstall": "patch-package",
     "publish": "vsce publish",
     "package": "vsce package --no-yarn"
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.7",
-    "@types/node": "20.x",
+    "@types/node": "^25.0.0",
     "@types/vscode": "^1.91.0",
-    "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1",
-    "eslint": "^9.9.1"
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2",
+    "esbuild": "^0.27.2",
+    "eslint": "^10.0.0",
+    "globals": "^17.3.0",
+    "patch-package": "^8.0.1",
+    "postinstall-postinstall": "^2.1.0"
   },
   "dependencies": {
-    "@xmldom/xmldom": "^0.9.5",
-    "node-fetch": "^2.7.0",
-    "yaml": "^2.6.0"
+    "@xmldom/xmldom": "^0.9.8",
+    "ajv": "^8.18.0",
+    "node-fetch": "^3.3.2",
+    "yaml": "^2.8.2"
+  },
+  "overrides": {
+    "minimatch": "^10.2.1",
+    "eslint": {
+      "ajv": "8.18.0"
+    },
+    "diff": "^8.0.3",
+    "serialize-javascript": "^7.0.3"
   }
 }

@@ -1,3 +1,4 @@
+// @ts-nocheck
 const vscode = acquireVsCodeApi();
 
 function filterWidgets(className, filterValue) {
@@ -9,6 +10,11 @@ function filterWidgets(className, filterValue) {
         widget.style.display = text.toLowerCase().includes(filter) ? '' : 'none';
     });
 }
+
+document.getElementById('searchInput').addEventListener('input', (event) => {
+    filterWidgets('widget-item', event.target.value);
+});
+
 document.querySelectorAll('.widget-item').forEach(widget => {
     widget.setAttribute('draggable', true); // Ensure the item is draggable
     widget.addEventListener('dragstart', (event) => {

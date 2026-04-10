@@ -1,47 +1,51 @@
-const { getPermissionsList, getPermissionsMap } = require('./permissin-list');
+const { getPermissionsList, getPermissionsMap } = require('./permission-list');
+const { getNonce, getCSP, getEmptyHtml } = require( '../utils/webview-validator');
+
+const commands = {
+    add : 'addPermission',
+    remove : 'removePermission'
+};
 
 class PermissionProvider {
+
     constructor(manifestService) {
         this.manifestService = manifestService;
         this.permissionsMap = getPermissionsMap();
         this.availablePermissions = getPermissionsList();
+        this.cspSourceDefault = undefined;
         this._view = undefined;
-
     }
 
     resolveWebviewView(webviewView) {
         this._view = webviewView;
+        this.cspSourceDefault = webviewView.webview.cspSource;
+        
+        webviewView.webview.html = getEmptyHtml();
         webviewView.webview.options = {
-            enableScripts: true,
+            enableScripts: true
         };
-        this.updateWebview();
-
-        webviewView.webview.onDidReceiveMessage((message) => {
+        webviewView.webview.onDidReceiveMessage(async (message) => {
             switch (message.command) {
-                case 'addPermission':
-                    this.manifestService.addPermission(message.permission);
+                case commands.add:
+                    await this.manifestService.addPermission(message.permission);
                     this.updateWebview();
                     break;
-                case 'removePermission':
-                    this.manifestService.removePermission(message.permission);
+                case commands.remove:
+                    await this.manifestService.removePermission(message.permission);
                     this.updateWebview();
                     break;
             }
         });
-        webviewView.onDidChangeVisibility(() => {
-            if (!webviewView.visible) {
-                this.dispose();
-            }
-        });
+        this.updateWebview();
     }
+    
     dispose() {
-        this._view.dispose();
-
+        this._view?.dispose();
     }
 
     updateWebview() {
-        const permissions = this.manifestService.readPermissions();
-        this._view.webview.html = this.getWebviewContent(permissions);
+        this.manifestService.readPermissions().then((permissions) => 
+            this._view.webview.html = this.getWebviewContent(permissions));
     }
 
     getShortPermissionName(fullPermission) {
@@ -50,6 +54,22 @@ class PermissionProvider {
     }
 
     getWebviewContent(permissions) {
+        const nonce = getNonce();
+        const csp = getCSP(nonce, this.cspSourceDefault, true);
+
+        if (!permissions) {
+            return `<!DOCTYPE html>
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta http-equiv="Content-Security-Policy" content="${csp}">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                </head>
+                <body>
+                    <h3>Edit Android Permissions<h3>
+                </body>
+            </html>`;
+        }
         const permissionsList = permissions
             .map(permission => `
                 <li>
@@ -62,9 +82,10 @@ class PermissionProvider {
             <html lang="en">
             <head>
                 <meta charset="UTF-8">
+                <meta http-equiv="Content-Security-Policy" content="${csp}">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Manage Permissions</title>
-                <style>
+                <style nonce="${nonce}">
                     body {
                         color: var(--vscode-foreground);
                         background-color: var(--vscode-editor-background);
@@ -76,6 +97,8 @@ class PermissionProvider {
                         position: relative;
                         width: 100%;
                         margin-bottom: 20px;
+                        padding-right: 15px;
+                        box-sizing: border-box;
                     }
                     .search-input {
                         width: 100%;
@@ -127,10 +150,13 @@ class PermissionProvider {
                         padding: 5px;
                         background: var(--vscode-list-inactiveSelectionBackground);
                     }
+                    h2 {
+						margin-top: 0;
+					}
                 </style>
             </head>
             <body>
-                <h1>Manage Android Permissions</h1>
+                <h2>Manage Android Permissions</h2>
                 <div class="dropdown-container">
                     <input 
                         type="text" 
@@ -144,7 +170,7 @@ class PermissionProvider {
                 <ul id="permissionsList">
                     ${permissionsList}
                 </ul>
-                <script>
+                <script nonce="${nonce}">
                     const vscode = acquireVsCodeApi();
                     const permissionsMap = ${JSON.stringify(this.permissionsMap)};
                     const availablePermissions = Object.keys(permissionsMap);
@@ -184,7 +210,7 @@ class PermissionProvider {
                     function selectPermission(shortPermission) {
                         const fullPermission = permissionsMap[shortPermission];
                         vscode.postMessage({ 
-                            command: 'addPermission', 
+                            command: '${commands.add}', 
                             permission: fullPermission
                         });
                         searchInput.value = '';
@@ -193,7 +219,7 @@ class PermissionProvider {
 
                     function removePermission(fullPermission) {
                         vscode.postMessage({ 
-                            command: 'removePermission',
+                            command: '${commands.remove}',
                             permission: fullPermission 
                         });
                     }

@@ -1,0 +1,7 @@
+{
+  "workbench.editorAssociations": {
+    "**/package.json": "default"
+  },
+  "output.filter.rules": {},
+  "git.decorations.enabled": true
+}

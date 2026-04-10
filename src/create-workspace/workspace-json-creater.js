@@ -1,6 +1,6 @@
 class WorkspaceJsonCreater {
 
-    static getplatformFolders(selectedPlatform) {
+    static getPlatformFolders(selectedPlatform) {
         let platformFolders;
         let fname;
         let fpath;
